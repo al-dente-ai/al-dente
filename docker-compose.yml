@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: al-dente-postgres
+    environment:
+      POSTGRES_DB: al_dente
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d al_dente"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis (optional - for rate limiting in production)
+  redis:
+    image: redis:7-alpine
+    container_name: al-dente-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Al Dente API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: al-dente-api
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/al_dente
+      JWT_SECRET: your-super-secret-jwt-key-for-development-only-min-32-chars
+      # Add your actual API keys here or use docker-compose.override.yml
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_IMAGE_BUCKET: pantry-images
+      FRONTEND_ORIGIN: http://localhost:3001
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
