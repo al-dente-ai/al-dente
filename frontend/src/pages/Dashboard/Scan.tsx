@@ -11,7 +11,9 @@ export default function Scan() {
   const { create: createItem } = useItems();
   const [showPreview, setShowPreview] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [dragCounter, setDragCounter] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const handleFileSelect = async (file: File) => {
     console.log('📁 [SCAN COMPONENT] File selected', {
@@ -52,22 +54,87 @@ export default function Scan() {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Reset drag state
     setDragActive(false);
+    setDragCounter(0);
+    
+    console.log('📂 [SCAN COMPONENT] Files dropped', {
+      fileCount: e.dataTransfer.files.length,
+      files: Array.from(e.dataTransfer.files).map(f => ({ name: f.name, type: f.type, size: f.size })),
+      timestamp: new Date().toISOString()
+    });
     
     const files = Array.from(e.dataTransfer.files);
     if (files[0]) {
+      console.log('✅ [SCAN COMPONENT] Processing dropped file', files[0].name);
       handleFileSelect(files[0]);
+    } else {
+      console.warn('⚠️ [SCAN COMPONENT] No files found in drop event');
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if files are being dragged
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    
+    setDragCounter(prevCounter => {
+      const newCounter = prevCounter + 1;
+      console.log('🔄 [SCAN COMPONENT] Drag enter detected', {
+        hasFiles,
+        dragCounter: newCounter,
+        dataTransferTypes: Array.from(e.dataTransfer.types),
+        timestamp: new Date().toISOString()
+      });
+      return newCounter;
+    });
+    
+    if (hasFiles) {
+      setDragActive(true);
     }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    setDragActive(true);
+    e.stopPropagation();
+    
+    // Check if files are being dragged over
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    
+    // Only log occasionally to avoid spam
+    if (Math.random() < 0.01) {
+      console.log('📋 [SCAN COMPONENT] Drag over active', { hasFiles });
+    }
+    
+    // Ensure drag active state is maintained for file drags
+    if (hasFiles && !dragActive) {
+      setDragActive(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    setDragActive(false);
+    e.stopPropagation();
+    
+    setDragCounter(prevCounter => {
+      const newCounter = prevCounter - 1;
+      console.log('🚪 [SCAN COMPONENT] Drag leave detected', {
+        dragCounter: newCounter,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Only deactivate drag when counter reaches 0 (completely left the drop zone)
+      if (newCounter === 0) {
+        console.log('🚪 [SCAN COMPONENT] Leaving drop zone completely - deactivating drag');
+        setDragActive(false);
+      }
+      
+      return Math.max(0, newCounter); // Prevent negative counter
+    });
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,12 +192,14 @@ export default function Scan() {
 
       <Card className="text-center">
         <div
+          ref={dropZoneRef}
           className={`border-2 border-dashed rounded-xl p-12 transition-colors ${
             dragActive 
               ? 'border-blue-400 bg-blue-50' 
               : 'border-gray-300 hover:border-gray-400'
           }`}
           onDrop={handleDrop}
+          onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
         >

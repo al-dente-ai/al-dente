@@ -169,11 +169,20 @@ class OpenAIService {
       - Provide clear, step-by-step instructions
       - Consider expiry dates when selecting ingredients
       - Make recipes appropriate for the requested meal type
-      - Include uses_item_ids for pantry items actually used in the recipe`;
+      - For uses_item_ids: ONLY include the exact ID strings of pantry items that are actually used in the recipe. If no pantry items are used, leave the array empty. Use the exact ID format provided in the pantry items list.`;
 
       const pantryDescription = pantryItems.map(item => 
-        `- ${item.name} (${item.amount || 'unknown amount'}, categories: ${item.categories.join(', ')}, expires: ${item.expiry || 'unknown'})`
+        `- ID: ${item.id} | ${item.name} (${item.amount || 'unknown amount'}, categories: ${item.categories.join(', ')}, expires: ${item.expiry || 'unknown'})`
       ).join('\n');
+
+      console.log('🧠 [OPENAI] Generating recipes with pantry items:', {
+        itemCount: pantryItems.length,
+        mealType,
+        userPrompt,
+        count,
+        pantryItemIds: pantryItems.map(item => item.id),
+        timestamp: new Date().toISOString()
+      });
 
       const userMessage = `Generate ${count} ${mealType} recipe(s) using these pantry items when possible:
 
@@ -234,7 +243,11 @@ Please generate recipes that make good use of available ingredients.`;
                       },
                       uses_item_ids: {
                         type: 'array',
-                        items: { type: 'string' },
+                        items: { 
+                          type: 'string',
+                          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                        },
+                        description: 'Array of UUID strings from the provided pantry items that are used in this recipe'
                       },
                     },
                     required: [
@@ -258,6 +271,20 @@ Please generate recipes that make good use of available ingredients.`;
       }
 
       const result = JSON.parse(content) as { recipes: AIRecipe[] };
+      
+      console.log('🎯 [OPENAI] Recipe generation response parsed:', {
+        recipeCount: result.recipes.length,
+        recipes: result.recipes.map(recipe => ({
+          title: recipe.title,
+          mealType: recipe.meal_type,
+          usesItemIds: recipe.uses_item_ids,
+          usesItemIdsCount: recipe.uses_item_ids ? recipe.uses_item_ids.length : 0,
+          ingredientCount: recipe.ingredients.length,
+          stepCount: recipe.steps.length
+        })),
+        timestamp: new Date().toISOString()
+      });
+      
       logger.info({ recipeCount: result.recipes.length }, 'Recipe generation completed');
       
       return result.recipes;

@@ -87,6 +87,17 @@ export class RecipesService {
           }
         }
 
+        // Debug AI recipe data
+        console.log('🤖 [RECIPES SERVICE] Processing AI recipe:', {
+          title: aiRecipe.title,
+          mealType: aiRecipe.meal_type,
+          aiUsesItemIds: aiRecipe.uses_item_ids,
+          aiUsesItemIdsType: typeof aiRecipe.uses_item_ids,
+          aiUsesItemIdsLength: aiRecipe.uses_item_ids ? aiRecipe.uses_item_ids.length : 0,
+          hasImageUrl: !!imageUrl,
+          timestamp: new Date().toISOString()
+        });
+
         // Create recipe in database
         const recipe = await this.createRecipe(userId, {
           title: aiRecipe.title,
@@ -129,6 +140,18 @@ export class RecipesService {
         image_url,
       } = data;
 
+      // Validate and filter UUID array
+      const validatedUUIDs = this.validateAndFilterUUIDs(uses_item_ids || []);
+      
+      console.log('🔍 [RECIPES SERVICE] Creating recipe with data:', {
+        userId,
+        title,
+        meal_type,
+        originalUsesItemIds: uses_item_ids,
+        validatedUUIDs,
+        timestamp: new Date().toISOString()
+      });
+
       const result = await db.query(
         `INSERT INTO recipes (
           user_id, title, description, meal_type, servings, 
@@ -145,19 +168,60 @@ export class RecipesService {
           prep_time_minutes,
           JSON.stringify(ingredients),
           JSON.stringify(steps),
-          uses_item_ids || [],
+          validatedUUIDs,
           image_url,
         ]
       );
 
       const recipe = result.rows[0] as Recipe;
+      
+      console.log('✅ [RECIPES SERVICE] Recipe created successfully:', {
+        recipeId: recipe.id,
+        userId,
+        finalUsesItemIds: recipe.uses_item_ids
+      });
+      
       logger.info({ recipeId: recipe.id, userId }, 'Recipe created successfully');
 
       return recipe;
     } catch (error) {
+      console.error('❌ [RECIPES SERVICE] Failed to create recipe:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      });
+      
       logger.error('Failed to create recipe', error);
       throw new Error('Failed to create recipe');
     }
+  }
+
+  private validateAndFilterUUIDs(uuids: string[]): string[] {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    
+    const validUUIDs = uuids.filter(uuid => {
+      if (!uuid || typeof uuid !== 'string') {
+        console.warn('⚠️ [RECIPES SERVICE] Invalid UUID type:', { uuid, type: typeof uuid });
+        return false;
+      }
+      
+      const isValid = uuidRegex.test(uuid);
+      if (!isValid) {
+        console.warn('⚠️ [RECIPES SERVICE] Invalid UUID format:', { uuid });
+      }
+      
+      return isValid;
+    });
+
+    console.log('🔍 [RECIPES SERVICE] UUID validation completed:', {
+      originalCount: uuids.length,
+      validCount: validUUIDs.length,
+      originalUUIDs: uuids,
+      validUUIDs,
+      timestamp: new Date().toISOString()
+    });
+
+    return validUUIDs;
   }
 
   async getRecipes(userId: string, query: RecipesQuery): Promise<PaginationResult<Recipe>> {

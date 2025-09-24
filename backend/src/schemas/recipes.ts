@@ -44,7 +44,7 @@ export const aiRecipeSchema = z.object({
   prep_time_minutes: z.number().min(1),
   ingredients: z.array(ingredientSchema),
   steps: z.array(z.string()).min(1),
-  uses_item_ids: z.array(z.string()).optional().default([]),
+  uses_item_ids: z.array(z.string().uuid()).optional().default([]),
 });
 
 export type GenerateRecipesRequest = z.infer<typeof generateRecipesSchema>;
