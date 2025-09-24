@@ -14,7 +14,15 @@ class OpenAIService {
   }
 
   async analyzeImage(imageUrl: string): Promise<VisionPrediction> {
+    const analysisStartTime = Date.now();
+    
     try {
+      console.log('🧠 [OPENAI] Starting image analysis', {
+        imageUrl,
+        model: 'gpt-4o-mini',
+        timestamp: new Date().toISOString()
+      });
+
       const systemPrompt = `You are a food identification assistant. Analyze the image and identify the food item shown. 
       
       Guidelines:
@@ -24,6 +32,8 @@ class OpenAIService {
       - If unsure about any field, leave it null and lower the confidence
       - For amounts, use common units (cups, pounds, pieces, etc.)`;
 
+      console.log('📝 [OPENAI] Sending vision request to OpenAI API');
+      const apiStartTime = Date.now();
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
@@ -79,17 +89,60 @@ class OpenAIService {
           },
         },
       });
+      const apiEndTime = Date.now();
+
+      console.log('📡 [OPENAI] API response received', {
+        apiDuration: `${apiEndTime - apiStartTime}ms`,
+        responseId: response.id,
+        model: response.model,
+        usage: response.usage,
+        finishReason: response.choices[0]?.finish_reason
+      });
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
+        console.error('❌ [OPENAI] No content in API response');
         throw new Error('No response from OpenAI');
       }
 
+      console.log('🔍 [OPENAI] Parsing response content', {
+        contentLength: content.length,
+        contentPreview: content.substring(0, 100) + '...'
+      });
+
       const prediction = JSON.parse(content) as VisionPrediction;
+      
+      const analysisEndTime = Date.now();
+      const totalDuration = analysisEndTime - analysisStartTime;
+
+      console.log('✅ [OPENAI] Analysis completed successfully', {
+        predictionName: prediction.name,
+        confidence: prediction.confidence,
+        categories: prediction.categories,
+        hasAmount: !!prediction.amount,
+        hasExpiry: !!prediction.expiry,
+        hasNotes: !!prediction.notes,
+        totalDuration: `${totalDuration}ms`,
+        apiDuration: `${apiEndTime - apiStartTime}ms`,
+        usage: response.usage,
+        timestamp: new Date().toISOString()
+      });
+
       logger.info({ prediction }, 'Image analysis completed');
       
       return prediction;
     } catch (error) {
+      const analysisEndTime = Date.now();
+      const totalDuration = analysisEndTime - analysisStartTime;
+      
+      console.error('❌ [OPENAI] Analysis failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        imageUrl,
+        duration: `${totalDuration}ms`,
+        timestamp: new Date().toISOString()
+      });
+      
       logger.error('OpenAI image analysis failed', error);
       throw new Error('Failed to analyze image');
     }

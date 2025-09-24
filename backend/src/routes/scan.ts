@@ -30,18 +30,38 @@ router.use(authenticate);
 router.use(uploadRateLimit);
 
 const uploadFile = async (req: Request, res: Response, next: NextFunction) => {
+  const startTime = Date.now();
   try {
     const authReq = req as AuthenticatedRequest;
     
+    console.log('🚀 [SCAN ROUTE] Upload request received', {
+      userId: authReq.user.id,
+      userAgent: authReq.get('User-Agent'),
+      contentType: authReq.get('Content-Type'),
+      timestamp: new Date().toISOString()
+    });
+    
     // Check if file was uploaded
     if (!authReq.file) {
+      console.error('❌ [SCAN ROUTE] No file provided in request');
       throw new ValidationError('No file uploaded. Please provide a file in the "file" field.');
     }
 
+    console.log('📁 [SCAN ROUTE] File received', {
+      userId: authReq.user.id,
+      filename: authReq.file.originalname,
+      fileSize: `${(authReq.file.size / 1024 / 1024).toFixed(2)}MB`,
+      mimeType: authReq.file.mimetype,
+      bufferSize: authReq.file.buffer.length
+    });
+
     // Validate the uploaded file
+    console.log('🔍 [SCAN ROUTE] Validating file');
     scanService.validateImageFile(authReq.file);
+    console.log('✅ [SCAN ROUTE] File validation passed');
 
     // Process the image scan
+    console.log('🤖 [SCAN ROUTE] Starting image processing');
     const result = await scanService.processImageScan(
       authReq.user.id,
       authReq.file.buffer,
@@ -49,8 +69,29 @@ const uploadFile = async (req: Request, res: Response, next: NextFunction) => {
       authReq.file.mimetype
     );
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    console.log('🎉 [SCAN ROUTE] Processing completed successfully', {
+      userId: authReq.user.id,
+      duration: `${duration}ms`,
+      imageUrl: result.image_url,
+      predictionName: result.prediction.name,
+      confidence: result.prediction.confidence,
+      timestamp: new Date().toISOString()
+    });
+
     res.status(200).json(result);
   } catch (error) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    console.error('❌ [SCAN ROUTE] Upload processing failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      duration: `${duration}ms`,
+      timestamp: new Date().toISOString()
+    });
+    
     next(error);
   }
 };
