@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
+import { randomUUID } from 'crypto';
 import { config } from './config';
 import { logger } from './logger';
 import { db } from './db';
@@ -37,7 +38,7 @@ app.use(cors({
 // Request logging
 app.use(pinoHttp({
   logger,
-  genReqId: () => crypto.randomUUID(),
+  genReqId: () => randomUUID(),
   autoLogging: {
     ignore: (req) => req.url === '/health',
   },

@@ -9,8 +9,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production --ignore-scripts
+# Install all dependencies (including dev dependencies for building)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -20,6 +20,9 @@ RUN npm run build
 
 # Production stage
 FROM node:18-alpine AS production
+
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -31,8 +34,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production --ignore-scripts && npm cache clean --force
+# Install production dependencies with native module compilation
+RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
