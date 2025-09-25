@@ -1,0 +1,23 @@
+# Build-only Dockerfile for Al Dente Frontend
+# This just builds the React app and outputs to a volume
+
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Set production environment variable for API
+ENV VITE_API_URL=/api
+
+# Build for production
+RUN npm run build
+
+# The dist folder will be available in /app/dist volume

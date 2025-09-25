@@ -1,0 +1,80 @@
+services:
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aldente-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}  # External PostgreSQL database
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-for-production-min-32-chars}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_IMAGE_BUCKET: ${SUPABASE_IMAGE_BUCKET:-cdn}
+      FRONTEND_ORIGIN: https://al-dente.site  # Nginx will handle CORS
+      LOG_LEVEL: info
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - aldente-network
+      - edge
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+
+  # Frontend (lightweight file server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.simple
+    container_name: aldente-frontend
+    networks:
+      - aldente-network
+      - edge
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: aldente-nginx
+    ports:
+      - "9080:80"
+      - "9443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/simple-frontend.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # Mount SSL certificates here
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - aldente-network
+      - edge
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  edge:
+    external: true  # Use existing edge network
+  aldente-network:
+    driver: bridge
