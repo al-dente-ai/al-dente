@@ -1,0 +1,29 @@
+# Docker Compose for Al Dente Frontend
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: aldente-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"  # Change port as needed
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aldente.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.aldente.tls=true"
+      - "traefik.http.routers.aldente.tls.certresolver=cloudflare"
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  web:
+    external: true
