@@ -7,6 +7,7 @@ import { LoginSchema, type LoginFormData } from '../../lib/validators';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
+import { Logo } from '../../components/ui';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -51,9 +52,8 @@ export default function Login() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 text-2xl font-bold text-blue-600">
-            <span>🍝</span>
-            <span>Al Dente</span>
+          <Link to="/" className="inline-flex items-center justify-center">
+            <Logo size={32} variant="mono" />
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Sign in to your account

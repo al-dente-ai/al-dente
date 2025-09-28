@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Logo } from '../ui';
 import { useAuth } from '../../store';
 import { cn } from '../../lib/utils';
 
@@ -23,10 +24,7 @@ export default function Shell() {
         <div className="flex flex-col flex-grow border-r border-gray-200 bg-white overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4 py-4 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🍝</span>
-              <span className="text-xl font-bold text-gray-900">Al Dente</span>
-            </div>
+            <Logo size={28} variant="mono" />
           </div>
 
           {/* Navigation */}
@@ -71,12 +69,9 @@ export default function Shell() {
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile top nav */}
-        <div className="md:hidden bg-white border-b border-gray-200 px-4 py-4">
+        <div className="md-hidden bg-white border-b border-gray-200 px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🍝</span>
-              <span className="text-xl font-bold text-gray-900">Al Dente</span>
-            </div>
+            <Logo size={24} variant="mono" />
             <button
               onClick={handleLogout}
               className="text-gray-400 hover:text-gray-600 text-sm font-medium"
