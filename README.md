@@ -291,4 +291,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **Made with ❤️ for home cooks who want to reduce food waste and discover amazing recipes.**
+
 **Al-Dente and the contributors to this project are not responsible and do not take credit for the recipes created.**
