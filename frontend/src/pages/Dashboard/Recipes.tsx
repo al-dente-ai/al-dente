@@ -109,7 +109,7 @@ export default function Recipes() {
           <div className="grid gap-4 md:grid-cols-2">
             <Select
               label="Meal Type"
-              options={[{ value: '', label: 'Any meal type' }, ...MEAL_TYPES]}
+              options={[{ value: 'any', label: 'Any' }, ...MEAL_TYPES]}
               {...register('meal_type')}
               error={errors.meal_type?.message}
             />

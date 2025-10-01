@@ -64,7 +64,7 @@ export interface Recipe {
 }
 
 export interface GenerateRecipesRequest {
-  meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'any';
   user_prompt?: string;
   count?: number;
   generate_images?: boolean;

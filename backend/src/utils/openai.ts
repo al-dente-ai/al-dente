@@ -184,7 +184,8 @@ class OpenAIService {
         timestamp: new Date().toISOString()
       });
 
-      const userMessage = `Generate ${count} ${mealType} recipe(s) using these pantry items when possible:
+      const mealTypeText = mealType && mealType !== 'any' ? `${mealType} ` : '';
+      const userMessage = `Generate ${count} ${mealTypeText}recipe(s) using these pantry items when possible:
 
 ${pantryDescription}
 

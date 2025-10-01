@@ -46,7 +46,7 @@ export class RecipesService {
           ...(item.amount && { amount: item.amount }),
           ...(item.expiry && { expiry: item.expiry }),
         })),
-        meal_type,
+        meal_type || 'any',
         user_prompt,
         count
       );

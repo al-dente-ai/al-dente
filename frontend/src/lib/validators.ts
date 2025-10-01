@@ -42,7 +42,7 @@ export const ItemsQuerySchema = z.object({
 
 // Recipe schemas
 export const GenerateRecipesSchema = z.object({
-  meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack']).optional(),
+  meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'any']).optional(),
   user_prompt: z.string().max(500, 'Prompt is too long').optional(),
   count: z.number().min(1).max(5).optional(),
   generate_images: z.boolean().optional(),

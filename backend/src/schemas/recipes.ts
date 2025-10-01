@@ -8,7 +8,7 @@ export const ingredientSchema = z.object({
 });
 
 export const generateRecipesSchema = z.object({
-  meal_type: mealTypeSchema,
+  meal_type: mealTypeSchema.or(z.literal('any')).optional().default('any'),
   user_prompt: z.string().trim().optional(),
   count: z.coerce.number().min(1).max(5).default(1),
   generate_images: z.boolean().default(true),
