@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Logo } from '../ui';
 import { useAuth } from '../../store';
 import { cn } from '../../lib/utils';
 
@@ -17,16 +18,13 @@ export default function Shell() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="h-screen flex bg-neutral-50">
       {/* Sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col">
-        <div className="flex flex-col flex-grow border-r border-gray-200 bg-white overflow-y-auto">
+        <div className="flex flex-col flex-grow border-r border-neutral-200 bg-white overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4 py-4 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🍝</span>
-              <span className="text-xl font-bold text-gray-900">Al Dente</span>
-            </div>
+            <Logo size={28} variant="mono" />
           </div>
 
           {/* Navigation */}
@@ -39,8 +37,8 @@ export default function Shell() {
                   cn(
                     'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors',
                     isActive
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-primary-100 text-primary-700'
+                      : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800'
                   )
                 }
               >
@@ -51,15 +49,15 @@ export default function Shell() {
           </nav>
 
           {/* User menu */}
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+          <div className="flex-shrink-0 flex border-t border-neutral-200 p-4">
             <div className="flex items-center">
               <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">User</div>
-                <div className="text-xs text-gray-500">Manage your pantry</div>
+                <div className="text-sm font-medium text-neutral-800">User</div>
+                <div className="text-xs text-neutral-500">Manage your pantry</div>
               </div>
               <button
                 onClick={handleLogout}
-                className="ml-3 text-gray-400 hover:text-gray-600 text-sm font-medium"
+                className="ml-3 text-neutral-400 hover:text-neutral-600 text-sm font-medium"
               >
                 Logout
               </button>
@@ -71,15 +69,12 @@ export default function Shell() {
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile top nav */}
-        <div className="md:hidden bg-white border-b border-gray-200 px-4 py-4">
+        <div className="md-hidden bg-white border-b border-gray-200 px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🍝</span>
-              <span className="text-xl font-bold text-gray-900">Al Dente</span>
-            </div>
+            <Logo size={24} variant="mono" />
             <button
               onClick={handleLogout}
-              className="text-gray-400 hover:text-gray-600 text-sm font-medium"
+              className="text-neutral-400 hover:text-neutral-600 text-sm font-medium"
             >
               Logout
             </button>
@@ -87,7 +82,7 @@ export default function Shell() {
         </div>
 
         {/* Mobile bottom nav */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-1">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 px-2 py-1">
           <nav className="flex justify-around">
             {navigation.map((item) => (
               <NavLink
@@ -97,8 +92,8 @@ export default function Shell() {
                   cn(
                     'flex flex-col items-center py-2 px-3 text-xs font-medium rounded transition-colors',
                     isActive
-                      ? 'text-blue-600'
-                      : 'text-gray-600'
+                      ? 'text-primary-600'
+                      : 'text-neutral-600'
                   )
                 }
               >

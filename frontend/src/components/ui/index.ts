@@ -8,3 +8,4 @@ export { default as Spinner } from './Spinner';
 export { default as Toasts } from './Toasts';
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table';
 export { default as ChipsMultiSelect } from './ChipsMultiSelect';
+export { default as Logo } from './Logo';
