@@ -48,19 +48,19 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-accent-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center">
             <Logo size={32} variant="mono" />
           </Link>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+          <h2 className="mt-6 text-3xl font-bold text-neutral-800">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-neutral-600">
             Or{' '}
-            <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/signup" className="font-medium text-primary-500 hover:text-primary-600">
               create a new account
             </Link>
           </p>
@@ -102,7 +102,7 @@ export default function Login() {
         </Card>
 
         <div className="mt-8 text-center">
-          <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">
+          <Link to="/" className="text-sm text-neutral-600 hover:text-neutral-800">
             ← Back to home
           </Link>
         </div>
