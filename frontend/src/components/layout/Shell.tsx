@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Logo } from '../ui';
 import { useAuth } from '../../store';
 import { cn } from '../../lib/utils';
 
@@ -22,11 +23,8 @@ export default function Shell() {
       <div className="hidden md:flex md:w-64 md:flex-col">
         <div className="flex flex-col flex-grow border-r border-neutral-200 bg-white overflow-y-auto">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0 px-4 py-4 border-b border-neutral-200">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🍝</span>
-              <span className="text-xl font-bold text-neutral-800">Al Dente</span>
-            </div>
+          <div className="flex items-center flex-shrink-0 px-4 py-4 border-b border-gray-200">
+            <Logo size={28} variant="mono" />
           </div>
 
           {/* Navigation */}
@@ -71,12 +69,9 @@ export default function Shell() {
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile top nav */}
-        <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-4">
+        <div className="md-hidden bg-white border-b border-gray-200 px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🍝</span>
-              <span className="text-xl font-bold text-neutral-800">Al Dente</span>
-            </div>
+            <Logo size={24} variant="mono" />
             <button
               onClick={handleLogout}
               className="text-neutral-400 hover:text-neutral-600 text-sm font-medium"

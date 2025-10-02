@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Logo } from '../components/ui';
 import { useIsAuthenticated } from '../store';
 
 export default function Landing() {
@@ -9,10 +10,7 @@ export default function Landing() {
       {/* Header */}
       <header className="px-6 py-4">
         <nav className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="text-2xl font-bold text-primary-500">🍝</div>
-            <span className="text-xl font-bold text-neutral-800">Al Dente</span>
-          </div>
+          <Logo size={28} variant="mono" />
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <Link
