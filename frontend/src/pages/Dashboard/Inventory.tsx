@@ -127,8 +127,8 @@ export default function Inventory() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pantry Inventory</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-neutral-800">Pantry Inventory</h1>
+          <p className="mt-1 text-sm text-neutral-600">
             Manage your food items and track expiry dates.
           </p>
         </div>
@@ -170,8 +170,8 @@ export default function Inventory() {
                 onClick={() => handleCategoryFilter(category.value)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   selectedCategories.includes(category.value)
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-accent-100 text-accent-800 border-2 border-accent-200'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                 }`}
               >
                 {category.label}
@@ -198,8 +198,8 @@ export default function Inventory() {
         ) : items.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg font-medium text-neutral-800 mb-2">No items found</h3>
+            <p className="text-neutral-600 mb-4">
               {selectedCategories.length > 0 || query.q
                 ? 'Try adjusting your filters or search term.'
                 : 'Start by adding some items to your pantry.'}
@@ -233,9 +233,9 @@ export default function Inventory() {
                           />
                         )}
                         <div>
-                          <div className="font-medium text-gray-900">{item.name}</div>
+                          <div className="font-medium text-neutral-800">{item.name}</div>
                           {item.notes && (
-                            <div className="text-sm text-gray-500">{item.notes}</div>
+                            <div className="text-sm text-neutral-500">{item.notes}</div>
                           )}
                         </div>
                       </div>
@@ -257,13 +257,13 @@ export default function Inventory() {
                       {item.expiry ? (
                         <span className={`text-sm ${
                           new Date(item.expiry) < new Date() ? 'text-red-600 font-medium' :
-                          new Date(item.expiry) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? 'text-yellow-600 font-medium' :
-                          'text-gray-600'
+                          new Date(item.expiry) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? 'text-accent-700 font-medium bg-accent-100 px-2 py-1 rounded' :
+                          'text-neutral-600'
                         }`}>
                           {formatRelativeDate(item.expiry)}
                         </span>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-neutral-400">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -292,8 +292,8 @@ export default function Inventory() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-                <div className="text-sm text-gray-700">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200">
+                <div className="text-sm text-neutral-700">
                   Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total items)
                 </div>
                 <div className="flex space-x-2">
