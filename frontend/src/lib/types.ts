@@ -63,11 +63,52 @@ export interface Recipe {
   created_at: string;
 }
 
+export type Dietary =
+  | 'vegetarian'
+  | 'vegan'
+  | 'gluten_free'
+  | 'dairy_free'
+  | 'nut_free'
+  | 'soy_free'
+  | 'egg_free'
+  | 'shellfish_free'
+  | 'pescatarian'
+  | 'keto'
+  | 'paleo'
+  | 'halal'
+  | 'kosher'
+  | 'low_sodium'
+  | 'low_carb'
+  | 'low_fat'
+  | 'diabetic_friendly'
+  | 'high_protein';
+
+export type Cuisine =
+  | 'italian'
+  | 'mexican'
+  | 'indian'
+  | 'chinese'
+  | 'japanese'
+  | 'thai'
+  | 'mediterranean'
+  | 'middle_eastern'
+  | 'french'
+  | 'spanish'
+  | 'greek'
+  | 'korean'
+  | 'vietnamese'
+  | 'american'
+  | 'latin_american'
+  | 'african'
+  | 'caribbean';
+
 export interface GenerateRecipesRequest {
   meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'any';
   user_prompt?: string;
   count?: number;
   generate_images?: boolean;
+  dietary?: Dietary[];
+  cuisines?: Cuisine[];
 }
 
 export interface CreateRecipeRequest {

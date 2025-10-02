@@ -41,11 +41,54 @@ export const ItemsQuerySchema = z.object({
 });
 
 // Recipe schemas
+const DietaryEnum = z.enum([
+  'vegetarian',
+  'vegan',
+  'gluten_free',
+  'dairy_free',
+  'nut_free',
+  'soy_free',
+  'egg_free',
+  'shellfish_free',
+  'pescatarian',
+  'keto',
+  'paleo',
+  'halal',
+  'kosher',
+  'low_sodium',
+  'low_carb',
+  'low_fat',
+  'diabetic_friendly',
+  'high_protein',
+]);
+
+const CuisineEnum = z.enum([
+  'italian',
+  'mexican',
+  'indian',
+  'chinese',
+  'japanese',
+  'thai',
+  'mediterranean',
+  'middle_eastern',
+  'french',
+  'spanish',
+  'greek',
+  'korean',
+  'vietnamese',
+  'american',
+  'latin_american',
+  'african',
+  'caribbean',
+]);
+
 export const GenerateRecipesSchema = z.object({
   meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'any']).optional(),
   user_prompt: z.string().max(500, 'Prompt is too long').optional(),
   count: z.number().min(1).max(5).optional(),
   generate_images: z.boolean().optional(),
+  dietary: z.array(DietaryEnum).optional(),
+  cuisines: z.array(CuisineEnum).optional(),
 });
 
 export const CreateRecipeSchema = z.object({

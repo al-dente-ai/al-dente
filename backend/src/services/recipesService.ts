@@ -24,7 +24,7 @@ export interface Recipe {
 
 export class RecipesService {
   async generateRecipes(userId: string, data: GenerateRecipesRequest): Promise<Recipe[]> {
-    const { meal_type, user_prompt, count, generate_images } = data;
+    const { meal_type, user_prompt, count, generate_images, dietary, cuisines } = data;
 
     try {
       // Get user's pantry items
@@ -48,7 +48,9 @@ export class RecipesService {
         })),
         meal_type || 'any',
         user_prompt,
-        count
+        count,
+        dietary,
+        cuisines
       );
 
       const recipes: Recipe[] = [];
