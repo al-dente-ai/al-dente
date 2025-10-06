@@ -3,13 +3,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRecipes, useItems, toast } from '../../store';
 import { GenerateRecipesSchema, type GenerateRecipesFormData } from '../../lib/validators';
-import type { Recipe } from '../../lib/types';
+import type { Recipe, Dietary, Cuisine } from '../../lib/types';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Spinner from '../../components/ui/Spinner';
+import ChipsMultiSelect from '../../components/ui/ChipsMultiSelect';
 import { formatDate } from '../../lib/utils';
 
 const MEAL_TYPES = [
@@ -19,13 +19,18 @@ const MEAL_TYPES = [
   { value: 'snack', label: 'Snack' },
 ];
 
+const RECIPE_COUNT_OPTIONS = Array.from({ length: 8 }, (_, i) => ({
+  value: String(i + 1),
+  label: String(i + 1),
+}));
+
 export default function Recipes() {
   const { 
     recipes, 
     pagination, 
     isLoading, 
     isGenerating, 
-    isSubmitting, 
+    
     fetchAll, 
     generate, 
     remove 
@@ -38,13 +43,26 @@ export default function Recipes() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<GenerateRecipesFormData>({
     resolver: zodResolver(GenerateRecipesSchema),
     defaultValues: {
       count: 2,
       generate_images: true,
+      dietary: [],
+      cuisines: [],
     },
   });
+
+  useEffect(() => {
+    // Ensure array fields are registered so setValue/watch work reliably
+    // This allows them to be included in form submission
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    register('dietary');
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    register('cuisines');
+  }, [register]);
 
   // Load recipes and items on mount
   useEffect(() => {
@@ -109,25 +127,68 @@ export default function Recipes() {
           <div className="grid gap-4 md:grid-cols-2">
             <Select
               label="Meal Type"
-              options={[{ value: '', label: 'Any meal type' }, ...MEAL_TYPES]}
+              options={[{ value: 'any', label: 'Any' }, ...MEAL_TYPES]}
               {...register('meal_type')}
               error={errors.meal_type?.message}
             />
-            <Input
+            <Select
               label="Number of Recipes"
-              type="number"
-              min="1"
-              max="5"
+              options={RECIPE_COUNT_OPTIONS}
               {...register('count', { valueAsNumber: true })}
               error={errors.count?.message}
             />
           </div>
-          <Input
-            label="Special Instructions"
-            placeholder="e.g., vegetarian, quick meals, Italian cuisine..."
-            {...register('user_prompt')}
-            error={errors.user_prompt?.message}
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <ChipsMultiSelect
+              options={[
+                { value: 'vegetarian', label: 'Vegetarian' },
+                { value: 'vegan', label: 'Vegan' },
+                { value: 'gluten_free', label: 'Gluten-free' },
+                { value: 'dairy_free', label: 'Dairy-free' },
+                { value: 'nut_free', label: 'Nut-free' },
+                { value: 'soy_free', label: 'Soy-free' },
+                { value: 'egg_free', label: 'Egg-free' },
+                { value: 'shellfish_free', label: 'Shellfish-free' },
+                { value: 'pescatarian', label: 'Pescatarian' },
+                { value: 'keto', label: 'Keto' },
+                { value: 'paleo', label: 'Paleo' },
+                { value: 'halal', label: 'Halal' },
+                { value: 'kosher', label: 'Kosher' },
+                { value: 'low_sodium', label: 'Low sodium' },
+                { value: 'low_carb', label: 'Low carb' },
+                { value: 'low_fat', label: 'Low fat' },
+                { value: 'diabetic_friendly', label: 'Diabetic-friendly' },
+                { value: 'high_protein', label: 'High protein' },
+              ]}
+              value={watch('dietary') || []}
+              onChange={(vals) => setValue('dietary', vals as Dietary[], { shouldDirty: true })}
+              error={errors.dietary?.message as string}
+            />
+            <ChipsMultiSelect
+              options={[
+                { value: 'italian', label: 'Italian' },
+                { value: 'mexican', label: 'Mexican' },
+                { value: 'indian', label: 'Indian' },
+                { value: 'chinese', label: 'Chinese' },
+                { value: 'japanese', label: 'Japanese' },
+                { value: 'thai', label: 'Thai' },
+                { value: 'mediterranean', label: 'Mediterranean' },
+                { value: 'middle_eastern', label: 'Middle Eastern' },
+                { value: 'french', label: 'French' },
+                { value: 'spanish', label: 'Spanish' },
+                { value: 'greek', label: 'Greek' },
+                { value: 'korean', label: 'Korean' },
+                { value: 'vietnamese', label: 'Vietnamese' },
+                { value: 'american', label: 'American' },
+                { value: 'latin_american', label: 'Latin American' },
+                { value: 'african', label: 'African' },
+                { value: 'caribbean', label: 'Caribbean' },
+              ]}
+              value={watch('cuisines') || []}
+              onChange={(vals) => setValue('cuisines', vals as Cuisine[], { shouldDirty: true })}
+              error={errors.cuisines?.message as string}
+            />
+          </div>
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"

@@ -158,7 +158,9 @@ class OpenAIService {
     }>,
     mealType: string,
     userPrompt?: string,
-    count: number = 1
+    count: number = 1,
+    dietary?: string[],
+    cuisines?: string[]
   ): Promise<AIRecipe[]> {
     try {
       const systemPrompt = `You are a skilled chef and recipe creator. Generate practical, delicious recipes using the provided pantry items when possible.
@@ -184,11 +186,21 @@ class OpenAIService {
         timestamp: new Date().toISOString()
       });
 
-      const userMessage = `Generate ${count} ${mealType} recipe(s) using these pantry items when possible:
+      const mealTypeText = mealType && mealType !== 'any' ? `${mealType} ` : '';
+      const dietaryText = (dietary && dietary.length > 0)
+        ? `All of the following dietary restrictions must be satisfied: ${dietary.join(' AND ')}`
+        : '';
+      const cuisinesText = (cuisines && cuisines.length > 0)
+        ? `Preferred cuisines (choose any that fit): ${cuisines.join(' OR ')}`
+        : '';
+      const userMessage = `Generate ${count} ${mealTypeText}recipe(s) using these pantry items when possible:
 
 ${pantryDescription}
 
 ${userPrompt ? `Additional requirements: ${userPrompt}` : ''}
+
+${dietaryText ? `\n${dietaryText}` : ''}
+${cuisinesText ? `\n${cuisinesText}` : ''}
 
 Please generate recipes that make good use of available ingredients.`;
 
