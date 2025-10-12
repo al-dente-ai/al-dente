@@ -26,7 +26,7 @@ export const CreateItemSchema = z.object({
   }, 'Expiry date must be in the future'),
   categories: z.array(z.string()).optional(),
   notes: z.string().max(1000, 'Notes are too long').optional(),
-  image_url: z.string().url().optional(),
+  image_url: z.string().optional(), // Can be URL or data URL from file upload
 });
 
 export const UpdateItemSchema = CreateItemSchema.partial();

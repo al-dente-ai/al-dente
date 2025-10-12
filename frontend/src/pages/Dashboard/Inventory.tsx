@@ -30,6 +30,9 @@ export default function Inventory() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [addImagePreview, setAddImagePreview] = useState<string | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
   // Forms
   const addForm = useForm<CreateItemFormData>({
@@ -44,6 +47,11 @@ export default function Inventory() {
   useEffect(() => {
     fetchAll({ ...query, categories: selectedCategories.length > 0 ? selectedCategories : undefined });
   }, [query, selectedCategories, fetchAll]);
+
+  // Clear selections when page changes or filters are applied
+  useEffect(() => {
+    setSelectedItems(new Set());
+  }, [query.page, query.q, selectedCategories]);
 
   // Debounced search
   const debouncedSearch = debounce((searchTerm: string) => {
@@ -78,12 +86,39 @@ export default function Inventory() {
     setQuery(prev => ({ ...prev, page: newPage }));
   };
 
+  const handleAddImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAddImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddItem = async (data: CreateItemFormData) => {
     try {
-      await create(data);
+      const itemData = { ...data };
+      if (addImagePreview) {
+        itemData.image_url = addImagePreview;
+      }
+      await create(itemData);
       toast.success(`Added "${data.name}" to inventory`);
       setShowAddModal(false);
       addForm.reset();
+      setAddImagePreview(null);
     } catch (error) {
       toast.error('Failed to add item');
     }
@@ -93,10 +128,15 @@ export default function Inventory() {
     if (!editingItem) return;
 
     try {
-      await update(editingItem.id, data);
+      const itemData = { ...data };
+      if (editImagePreview) {
+        itemData.image_url = editImagePreview;
+      }
+      await update(editingItem.id, itemData);
       toast.success(`Updated "${editingItem.name}"`);
       setEditingItem(null);
       editForm.reset();
+      setEditImagePreview(null);
     } catch (error) {
       toast.error('Failed to update item');
     }
@@ -113,15 +153,50 @@ export default function Inventory() {
     }
   };
 
+  const handleToggleItem = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAll = () => {
+    if (selectedItems.size === items.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(items.map(item => item.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const count = selectedItems.size;
+    if (count === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${count} item${count > 1 ? 's' : ''}?`)) return;
+
+    try {
+      await Promise.all(Array.from(selectedItems).map(id => remove(id)));
+      toast.success(`Deleted ${count} item${count > 1 ? 's' : ''}`);
+      setSelectedItems(new Set());
+    } catch (error) {
+      toast.error('Failed to delete items');
+    }
+  };
+
   const openEditModal = (item: Item) => {
     setEditingItem(item);
+    setEditImagePreview(item.image_url || null);
     editForm.reset({
       name: item.name,
       amount: item.amount || '',
       expiry: item.expiry || '',
       categories: item.categories,
       notes: item.notes || '',
-      image_url: item.image_url || '',
     });
   };
 
@@ -156,16 +231,14 @@ export default function Inventory() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-800">Pantry Inventory</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Manage your food items and track expiry dates.
-          </p>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          Add Item
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-neutral-800">Pantry Inventory</h1>
+        <p className="mt-1 text-sm text-neutral-600">
+          {selectedItems.size > 0 
+            ? `${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''} selected`
+            : 'Manage your food items and track expiry dates.'
+          }
+        </p>
       </div>
 
       {/* Filters */}
@@ -205,6 +278,22 @@ export default function Inventory() {
         </div>
       </Card>
 
+      {/* Action buttons */}
+      <div className="flex justify-end gap-2">
+        {selectedItems.size > 0 && (
+          <Button 
+            onClick={handleBulkDelete}
+            variant="outline"
+            className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+          >
+            Delete Selected ({selectedItems.size})
+          </Button>
+        )}
+        <Button onClick={() => setShowAddModal(true)}>
+          Add Item
+        </Button>
+      </div>
+
       {/* Items Table */}
       <Card padding="sm">
         {isLoading ? (
@@ -229,6 +318,14 @@ export default function Inventory() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={items.length > 0 && selectedItems.size === items.length}
+                      onChange={handleToggleAll}
+                      className="rounded border-neutral-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
+                    />
+                  </TableHead>
                   <TableHead>
                     <SortableHeader column="name" label="Item" />
                   </TableHead>
@@ -241,12 +338,20 @@ export default function Inventory() {
                   <TableHead>
                     <SortableHeader column="expiry" label="Expiry" />
                   </TableHead>
-                  <TableHead></TableHead>
+                  <TableHead><span></span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.id}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(item.id)}
+                        onChange={() => handleToggleItem(item.id)}
+                        className="rounded border-neutral-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         {item.image_url && (
@@ -352,6 +457,7 @@ export default function Inventory() {
         onClose={() => {
           setShowAddModal(false);
           addForm.reset();
+          setAddImagePreview(null);
         }}
         title="Add New Item"
       >
@@ -379,12 +485,26 @@ export default function Inventory() {
             {...addForm.register('notes')}
             error={addForm.formState.errors.notes?.message}
           />
-          <Input
-            label="Image URL"
-            placeholder="https://..."
-            {...addForm.register('image_url')}
-            error={addForm.formState.errors.image_url?.message}
-          />
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAddImageChange}
+              className="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 cursor-pointer"
+            />
+            {addImagePreview && (
+              <div className="mt-3">
+                <img
+                  src={addImagePreview}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-lg"
+                />
+              </div>
+            )}
+          </div>
           <div className="flex space-x-3 pt-4">
             <Button
               type="submit"
@@ -400,6 +520,7 @@ export default function Inventory() {
               onClick={() => {
                 setShowAddModal(false);
                 addForm.reset();
+                setAddImagePreview(null);
               }}
             >
               Cancel
@@ -414,6 +535,7 @@ export default function Inventory() {
         onClose={() => {
           setEditingItem(null);
           editForm.reset();
+          setEditImagePreview(null);
         }}
         title="Edit Item"
       >
@@ -441,12 +563,26 @@ export default function Inventory() {
             {...editForm.register('notes')}
             error={editForm.formState.errors.notes?.message}
           />
-          <Input
-            label="Image URL"
-            placeholder="https://..."
-            {...editForm.register('image_url')}
-            error={editForm.formState.errors.image_url?.message}
-          />
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleEditImageChange}
+              className="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 cursor-pointer"
+            />
+            {editImagePreview && (
+              <div className="mt-3">
+                <img
+                  src={editImagePreview}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-lg"
+                />
+              </div>
+            )}
+          </div>
           <div className="flex space-x-3 pt-4">
             <Button
               type="submit"
@@ -462,6 +598,7 @@ export default function Inventory() {
               onClick={() => {
                 setEditingItem(null);
                 editForm.reset();
+                setEditImagePreview(null);
               }}
             >
               Cancel
