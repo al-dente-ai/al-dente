@@ -3,13 +3,20 @@ import { useState, useEffect } from 'react';
 import { Logo } from '../ui';
 import { useAuth, useIsAuthenticated } from '../../store';
 
-export default function Header() {
+interface HeaderProps {
+  variant?: 'transparent' | 'solid';
+}
+
+export default function Header({ variant = 'transparent' }: HeaderProps) {
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
   const { logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    // Only track scroll for transparent variant
+    if (variant !== 'transparent') return;
+
     const handleScroll = () => {
       if (window.scrollY > 10) {
         setIsScrolled(true);
@@ -20,20 +27,26 @@ export default function Header() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [variant]);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
+  const getHeaderClasses = () => {
+    if (variant === 'solid') {
+      return 'bg-white border-b border-neutral-200 shadow-sm';
+    }
+    
+    return isScrolled 
+      ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200/50 shadow-sm' 
+      : 'bg-transparent';
+  };
+
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200/50 shadow-sm' 
-          : 'bg-transparent'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${getHeaderClasses()}`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Left side: Logo and Site Name */}
