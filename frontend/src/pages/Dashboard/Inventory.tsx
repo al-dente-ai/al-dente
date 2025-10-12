@@ -11,6 +11,7 @@ import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import Spinner from '../../components/ui/Spinner';
+import Dropdown, { DropdownItem } from '../../components/ui/Dropdown';
 
 const CATEGORIES = [
   { value: 'produce', label: 'Produce' },
@@ -240,7 +241,7 @@ export default function Inventory() {
                   <TableHead>
                     <SortableHeader column="expiry" label="Expiry" />
                   </TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -257,9 +258,6 @@ export default function Inventory() {
                         )}
                         <div>
                           <div className="font-medium text-neutral-800">{item.name}</div>
-                          {item.notes && (
-                            <div className="text-sm text-neutral-500">{item.notes}</div>
-                          )}
                         </div>
                       </div>
                     </TableCell>
@@ -290,23 +288,28 @@ export default function Inventory() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditModal(item)}
-                        >
+                      <Dropdown
+                        trigger={
+                          <button className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
+                            <svg
+                              className="w-5 h-5 text-neutral-600"
+                              fill="currentColor"
+                              viewBox="0 0 16 16"
+                            >
+                              <circle cx="8" cy="3" r="1.5" />
+                              <circle cx="8" cy="8" r="1.5" />
+                              <circle cx="8" cy="13" r="1.5" />
+                            </svg>
+                          </button>
+                        }
+                      >
+                        <DropdownItem onClick={() => openEditModal(item)}>
                           Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteItem(item)}
-                          className="text-red-600 hover:text-red-700"
-                        >
+                        </DropdownItem>
+                        <DropdownItem onClick={() => handleDeleteItem(item)} variant="danger">
                           Delete
-                        </Button>
-                      </div>
+                        </DropdownItem>
+                      </Dropdown>
                     </TableCell>
                   </TableRow>
                 ))}
