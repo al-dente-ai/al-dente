@@ -7,7 +7,6 @@ import { formatRelativeDate, getCategoryColor, debounce } from '../../lib/utils'
 import type { Item, ItemsQuery } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
@@ -22,11 +21,6 @@ const CATEGORIES = [
   { value: 'condiments', label: 'Condiments' },
   { value: 'snacks', label: 'Snacks' },
   { value: 'beverages', label: 'Beverages' },
-];
-
-const SORT_OPTIONS = [
-  { value: 'expiry', label: 'Expiry Date' },
-  { value: 'name', label: 'Name' },
 ];
 
 export default function Inventory() {
@@ -68,8 +62,15 @@ export default function Inventory() {
     setQuery(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleSort = (sort: string, order: string) => {
-    setQuery(prev => ({ ...prev, sort: sort as 'name' | 'expiry', order: order as 'asc' | 'desc', page: 1 }));
+  const handleSort = (column: 'name' | 'expiry' | 'amount' | 'categories') => {
+    setQuery(prev => {
+      // If clicking the same column, toggle the order
+      if (prev.sort === column) {
+        return { ...prev, order: prev.order === 'asc' ? 'desc' : 'asc', page: 1 };
+      }
+      // If clicking a different column, set it as the sort column with ascending order
+      return { ...prev, sort: column, order: 'asc', page: 1 };
+    });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -123,6 +124,35 @@ export default function Inventory() {
     });
   };
 
+  // Helper to render sortable column headers
+  const SortableHeader = ({ column, label }: { column: 'name' | 'expiry' | 'amount' | 'categories'; label: string }) => {
+    const isSorted = query.sort === column;
+    const isAsc = query.order === 'asc';
+    
+    return (
+      <button
+        onClick={() => handleSort(column)}
+        className="flex items-center space-x-1.5 hover:text-accent-600 transition-colors font-medium"
+      >
+        <span>{label}</span>
+        <span className="flex flex-col items-center -space-y-1">
+          {isSorted ? (
+            isAsc ? (
+              <span className="text-accent-600">▲</span>
+            ) : (
+              <span className="text-accent-600">▼</span>
+            )
+          ) : (
+            <>
+              <span className="text-neutral-300 text-[10px]">▲</span>
+              <span className="text-neutral-300 text-[10px]">▼</span>
+            </>
+          )}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -140,25 +170,10 @@ export default function Inventory() {
       {/* Filters */}
       <Card>
         <div className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-1">
             <Input
               placeholder="Search items..."
               onChange={handleSearch}
-            />
-            <Select
-              value={query.sort || 'expiry'}
-              onChange={(e) => handleSort(e.target.value, query.order || 'asc')}
-              options={SORT_OPTIONS}
-              placeholder="Sort by"
-            />
-            <Select
-              value={query.order || 'asc'}
-              onChange={(e) => handleSort(query.sort || 'expiry', e.target.value)}
-              options={[
-                { value: 'asc', label: 'Ascending' },
-                { value: 'desc', label: 'Descending' },
-              ]}
-              placeholder="Order"
             />
           </div>
 
@@ -213,10 +228,18 @@ export default function Inventory() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Categories</TableHead>
-                  <TableHead>Expiry</TableHead>
+                  <TableHead>
+                    <SortableHeader column="name" label="Item" />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="amount" label="Amount" />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="categories" label="Categories" />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="expiry" label="Expiry" />
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
