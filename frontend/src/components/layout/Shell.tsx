@@ -1,7 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Logo } from '../ui';
-import { useAuth } from '../../store';
 import { cn } from '../../lib/utils';
 import Header from './Header';
 
@@ -12,7 +11,6 @@ const navigation = [
 ];
 
 export default function Shell() {
-  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Set initial sidebar state based on screen width
@@ -31,11 +29,6 @@ export default function Shell() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    window.location.assign('/');
-  };
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -77,22 +70,6 @@ export default function Shell() {
               </NavLink>
             ))}
           </nav>
-
-          {/* User menu */}
-          <div className="flex-shrink-0 flex border-t border-neutral-200 p-4">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <div className="text-sm font-medium text-neutral-800">User</div>
-                <div className="text-xs text-neutral-500">Manage your pantry</div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="ml-3 text-neutral-400 hover:text-neutral-600 text-sm font-medium"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
