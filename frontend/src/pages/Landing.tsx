@@ -1,46 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Logo } from '../components/ui';
-import { useIsAuthenticated } from '../store';
+import Header from '../components/layout/Header';
 
 export default function Landing() {
-  const isAuthenticated = useIsAuthenticated();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent-50 to-white">
       {/* Header */}
-      <header className="px-6 py-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between">
-          <Logo size={28} variant="mono" />
-          <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <Link
-                to="/app"
-                className="btn btn-primary"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="btn btn-secondary"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="btn btn-primary"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       {/* Hero Section */}
-      <main className="mx-auto max-w-6xl px-6 py-16">
+      <main className="mx-auto max-w-6xl px-6 pt-32 pb-16">
         <div className="text-center">
           <h1 className="mb-6 text-5xl font-bold text-neutral-800">
             Smart Pantry Management &
