@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Logo } from '../ui';
 import { useAuth } from '../../store';
 import { cn } from '../../lib/utils';
@@ -12,17 +13,45 @@ const navigation = [
 
 export default function Shell() {
   const { logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Set initial sidebar state based on screen width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLogout = () => {
     logout();
     window.location.assign('/');
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="h-screen flex bg-neutral-50">
       {/* Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col">
-        <div className="flex flex-col flex-grow border-r border-neutral-200 bg-white overflow-y-auto">
+      <div className={cn(
+        "hidden md:flex md:flex-col transition-all duration-300 ease-in-out overflow-hidden",
+        sidebarOpen ? "md:w-64" : "md:w-0"
+      )}>
+        <div className={cn(
+          "flex flex-col flex-grow border-r border-neutral-200 bg-white overflow-y-auto transition-opacity duration-300 w-64 flex-shrink-0",
+          sidebarOpen ? "opacity-100" : "opacity-0"
+        )}>
           {/* Logo */}
           <div className="flex items-center justify-center flex-shrink-0 px-4 py-4 border-b border-gray-200">
             <Logo size={28} variant="mono" showText={false} to="" />
@@ -70,7 +99,7 @@ export default function Shell() {
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Header */}
-        <Header variant="solid" />
+        <Header variant="solid" showSidebarToggle={true} onToggleSidebar={toggleSidebar} />
 
         {/* Mobile bottom nav */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 px-2 py-1">

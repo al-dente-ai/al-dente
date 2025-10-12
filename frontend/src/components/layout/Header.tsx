@@ -5,9 +5,11 @@ import { useAuth, useIsAuthenticated } from '../../store';
 
 interface HeaderProps {
   variant?: 'transparent' | 'solid';
+  onToggleSidebar?: () => void;
+  showSidebarToggle?: boolean;
 }
 
-export default function Header({ variant = 'transparent' }: HeaderProps) {
+export default function Header({ variant = 'transparent', onToggleSidebar, showSidebarToggle = false }: HeaderProps) {
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
   const { logout } = useAuth();
@@ -49,8 +51,21 @@ export default function Header({ variant = 'transparent' }: HeaderProps) {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${getHeaderClasses()}`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        {/* Left side: Logo and Site Name */}
-        <Logo to="/" size={32} variant="mono" showText={true} className="hover:opacity-80 transition-opacity" />
+        {/* Left side: Sidebar Toggle + Logo and Site Name */}
+        <div className="flex items-center space-x-4">
+          {showSidebarToggle && onToggleSidebar && (
+            <button
+              onClick={onToggleSidebar}
+              className="hidden md:flex items-center justify-center p-2 rounded-lg hover:bg-neutral-100 transition-colors text-neutral-700"
+              aria-label="Toggle sidebar"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          <Logo to="/" size={32} variant="mono" showText={true} className="hover:opacity-80 transition-opacity" />
+        </div>
 
         {/* Right side: Navigation */}
         <div className="flex items-center space-x-4">
