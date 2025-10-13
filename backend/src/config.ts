@@ -63,8 +63,6 @@ function validateConfig() {
     },
   };
 
-  console.log(rawConfig);
-
   try {
     return configSchema.parse(rawConfig);
   } catch (error) {

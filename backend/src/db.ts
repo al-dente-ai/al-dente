@@ -1,4 +1,5 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { config } from './config';
 import { logger } from './logger';
 
@@ -76,3 +77,14 @@ class Database {
 
 export const db = new Database();
 export { Database };
+
+// Drizzle ORM client (to be used alongside/gradually replacing raw queries)
+// Prefer importing `drizzleDb` for new codepaths while existing services can keep using `db`.
+const pool = new Pool({
+  connectionString: config.database.url,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+export const drizzleDb = drizzle(pool);
