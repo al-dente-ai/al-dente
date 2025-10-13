@@ -7,7 +7,6 @@ import { formatRelativeDate, getCategoryColor, debounce } from '../../lib/utils'
 import type { Item, ItemsQuery } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
@@ -24,17 +23,15 @@ const CATEGORIES = [
   { value: 'beverages', label: 'Beverages' },
 ];
 
-const SORT_OPTIONS = [
-  { value: 'expiry', label: 'Expiry Date' },
-  { value: 'name', label: 'Name' },
-];
-
 export default function Inventory() {
   const { items, pagination, isLoading, isSubmitting, fetchAll, create, update, remove } = useItems();
   const [query, setQuery] = useState<ItemsQuery>({ page: 1, pageSize: 20, sort: 'expiry', order: 'asc' });
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [addImagePreview, setAddImagePreview] = useState<string | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
   // Forms
   const addForm = useForm<CreateItemFormData>({
@@ -49,6 +46,11 @@ export default function Inventory() {
   useEffect(() => {
     fetchAll({ ...query, categories: selectedCategories.length > 0 ? selectedCategories : undefined });
   }, [query, selectedCategories, fetchAll]);
+
+  // Clear selections when page changes or filters are applied
+  useEffect(() => {
+    setSelectedItems(new Set());
+  }, [query.page, query.q, selectedCategories]);
 
   // Debounced search
   const debouncedSearch = debounce((searchTerm: string) => {
@@ -68,20 +70,54 @@ export default function Inventory() {
     setQuery(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleSort = (sort: string, order: string) => {
-    setQuery(prev => ({ ...prev, sort: sort as 'name' | 'expiry', order: order as 'asc' | 'desc', page: 1 }));
+  const handleSort = (column: 'name' | 'expiry' | 'amount' | 'categories') => {
+    setQuery(prev => {
+      // If clicking the same column, toggle the order
+      if (prev.sort === column) {
+        return { ...prev, order: prev.order === 'asc' ? 'desc' : 'asc', page: 1 };
+      }
+      // If clicking a different column, set it as the sort column with ascending order
+      return { ...prev, sort: column, order: 'asc', page: 1 };
+    });
   };
 
   const handlePageChange = (newPage: number) => {
     setQuery(prev => ({ ...prev, page: newPage }));
   };
 
+  const handleAddImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAddImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddItem = async (data: CreateItemFormData) => {
     try {
-      await create(data);
+      const itemData = { ...data };
+      if (addImagePreview) {
+        itemData.image_url = addImagePreview;
+      }
+      await create(itemData);
       toast.success(`Added "${data.name}" to inventory`);
       setShowAddModal(false);
       addForm.reset();
+      setAddImagePreview(null);
     } catch (error) {
       toast.error('Failed to add item');
     }
@@ -91,10 +127,15 @@ export default function Inventory() {
     if (!editingItem) return;
 
     try {
-      await update(editingItem.id, data);
+      const itemData = { ...data };
+      if (editImagePreview) {
+        itemData.image_url = editImagePreview;
+      }
+      await update(editingItem.id, itemData);
       toast.success(`Updated "${editingItem.name}"`);
       setEditingItem(null);
       editForm.reset();
+      setEditImagePreview(null);
     } catch (error) {
       toast.error('Failed to update item');
     }
@@ -111,8 +152,44 @@ export default function Inventory() {
     }
   };
 
+  const handleToggleItem = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAll = () => {
+    if (selectedItems.size === items.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(items.map(item => item.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const count = selectedItems.size;
+    if (count === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${count} item${count > 1 ? 's' : ''}?`)) return;
+
+    try {
+      await Promise.all(Array.from(selectedItems).map(id => remove(id)));
+      toast.success(`Deleted ${count} item${count > 1 ? 's' : ''}`);
+      setSelectedItems(new Set());
+    } catch (error) {
+      toast.error('Failed to delete items');
+    }
+  };
+
   const openEditModal = (item: Item) => {
     setEditingItem(item);
+    setEditImagePreview(item.image_url || null);
     editForm.reset({
       name: item.name,
       amount: item.amount || '',
@@ -123,42 +200,54 @@ export default function Inventory() {
     });
   };
 
+  // Helper to render sortable column headers
+  const SortableHeader = ({ column, label }: { column: 'name' | 'expiry' | 'amount' | 'categories'; label: string }) => {
+    const isSorted = query.sort === column;
+    const isAsc = query.order === 'asc';
+    
+    return (
+      <button
+        onClick={() => handleSort(column)}
+        className="flex items-center space-x-1.5 hover:text-accent-600 transition-colors font-medium"
+      >
+        <span>{label}</span>
+        <span className="flex flex-col items-center -space-y-1">
+          {isSorted ? (
+            isAsc ? (
+              <span className="text-accent-600">▲</span>
+            ) : (
+              <span className="text-accent-600">▼</span>
+            )
+          ) : (
+            <>
+              <span className="text-neutral-300 text-[10px]">▲</span>
+              <span className="text-neutral-300 text-[10px]">▼</span>
+            </>
+          )}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-800">Pantry Inventory</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Manage your food items and track expiry dates.
-          </p>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          Add Item
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-neutral-800">Pantry Inventory</h1>
+        <p className="mt-1 text-sm text-neutral-600">
+          {selectedItems.size > 0 
+            ? `${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''} selected`
+            : 'Manage your food items and track expiry dates.'
+          }
+        </p>
       </div>
 
       {/* Filters */}
       <Card>
         <div className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-1">
             <Input
               placeholder="Search items..."
               onChange={handleSearch}
-            />
-            <Select
-              value={query.sort || 'expiry'}
-              onChange={(e) => handleSort(e.target.value, query.order || 'asc')}
-              options={SORT_OPTIONS}
-              placeholder="Sort by"
-            />
-            <Select
-              value={query.order || 'asc'}
-              onChange={(e) => handleSort(query.sort || 'expiry', e.target.value)}
-              options={[
-                { value: 'asc', label: 'Ascending' },
-                { value: 'desc', label: 'Descending' },
-              ]}
-              placeholder="Order"
             />
           </div>
 
@@ -189,6 +278,22 @@ export default function Inventory() {
         </div>
       </Card>
 
+      {/* Action buttons */}
+      <div className="flex justify-end gap-2">
+        {selectedItems.size > 0 && (
+          <Button 
+            onClick={handleBulkDelete}
+            variant="outline"
+            className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+          >
+            Delete Selected ({selectedItems.size})
+          </Button>
+        )}
+        <Button onClick={() => setShowAddModal(true)}>
+          Add Item
+        </Button>
+      </div>
+
       {/* Items Table */}
       <Card padding="sm">
         {isLoading ? (
@@ -213,35 +318,61 @@ export default function Inventory() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Categories</TableHead>
-                  <TableHead>Expiry</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={items.length > 0 && selectedItems.size === items.length}
+                      onChange={handleToggleAll}
+                      className="rounded border-neutral-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
+                    />
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    <SortableHeader column="name" label="Item" />
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    <SortableHeader column="amount" label="Amount" />
+                  </TableHead>
+                  <TableHead className="hidden xl:table-cell">
+                    <SortableHeader column="categories" label="Categories" />
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    <SortableHeader column="expiry" label="Expiry" />
+                  </TableHead>
+                  <TableHead><span></span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(item.id)}
+                        onChange={() => handleToggleItem(item.id)}
+                        className="rounded border-neutral-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
+                      />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="flex items-center space-x-3 text-left hover:opacity-75 transition-opacity w-full"
+                      >
                         {item.image_url && (
                           <img
                             src={item.image_url}
                             alt={item.name}
-                            className="h-10 w-10 rounded-lg object-cover"
+                            className="h-10 w-10 rounded-lg object-cover cursor-pointer"
                           />
                         )}
                         <div>
-                          <div className="font-medium text-neutral-800">{item.name}</div>
-                          {item.notes && (
-                            <div className="text-sm text-neutral-500">{item.notes}</div>
-                          )}
+                          <div className="font-medium text-neutral-800 hover:text-accent-600 cursor-pointer">
+                            {item.name}
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     </TableCell>
-                    <TableCell>{item.amount || '—'}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">{item.amount || '—'}</TableCell>
+                    <TableCell className="hidden xl:table-cell">
                       <div className="flex flex-wrap gap-1">
                         {item.categories.map((category) => (
                           <span
@@ -253,7 +384,7 @@ export default function Inventory() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {item.expiry ? (
                         <span className={`text-sm ${
                           new Date(item.expiry) < new Date() ? 'text-red-600 font-medium' :
@@ -267,23 +398,25 @@ export default function Inventory() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditModal(item)}
+                      <button
+                        onClick={() => handleDeleteItem(item)}
+                        className="p-2 hover:bg-red-50 rounded-full transition-colors group"
+                        title="Delete item"
+                      >
+                        <svg
+                          className="w-5 h-5 text-neutral-400 group-hover:text-red-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteItem(item)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -326,6 +459,7 @@ export default function Inventory() {
         onClose={() => {
           setShowAddModal(false);
           addForm.reset();
+          setAddImagePreview(null);
         }}
         title="Add New Item"
       >
@@ -353,12 +487,26 @@ export default function Inventory() {
             {...addForm.register('notes')}
             error={addForm.formState.errors.notes?.message}
           />
-          <Input
-            label="Image URL"
-            placeholder="https://..."
-            {...addForm.register('image_url')}
-            error={addForm.formState.errors.image_url?.message}
-          />
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAddImageChange}
+              className="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 cursor-pointer"
+            />
+            {addImagePreview && (
+              <div className="mt-3">
+                <img
+                  src={addImagePreview}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-lg"
+                />
+              </div>
+            )}
+          </div>
           <div className="flex space-x-3 pt-4">
             <Button
               type="submit"
@@ -374,6 +522,7 @@ export default function Inventory() {
               onClick={() => {
                 setShowAddModal(false);
                 addForm.reset();
+                setAddImagePreview(null);
               }}
             >
               Cancel
@@ -388,6 +537,7 @@ export default function Inventory() {
         onClose={() => {
           setEditingItem(null);
           editForm.reset();
+          setEditImagePreview(null);
         }}
         title="Edit Item"
       >
@@ -415,30 +565,62 @@ export default function Inventory() {
             {...editForm.register('notes')}
             error={editForm.formState.errors.notes?.message}
           />
-          <Input
-            label="Image URL"
-            placeholder="https://..."
-            {...editForm.register('image_url')}
-            error={editForm.formState.errors.image_url?.message}
-          />
-          <div className="flex space-x-3 pt-4">
-            <Button
-              type="submit"
-              className="flex-1"
-              isLoading={isSubmitting}
-            >
-              Update Item
-            </Button>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleEditImageChange}
+              className="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100 cursor-pointer"
+            />
+            {editImagePreview && (
+              <div className="mt-3">
+                <img
+                  src={editImagePreview}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-lg"
+                />
+              </div>
+            )}
+          </div>
+          <div className="space-y-3 pt-4">
+            <div className="flex space-x-3">
+              <Button
+                type="submit"
+                className="flex-1"
+                isLoading={isSubmitting}
+              >
+                Update Item
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setEditingItem(null);
+                  editForm.reset();
+                  setEditImagePreview(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="w-full text-red-600 hover:text-red-700 border-red-300 hover:border-red-400 hover:bg-red-50"
               onClick={() => {
-                setEditingItem(null);
-                editForm.reset();
+                if (editingItem) {
+                  handleDeleteItem(editingItem);
+                  setEditingItem(null);
+                  editForm.reset();
+                  setEditImagePreview(null);
+                }
               }}
             >
-              Cancel
+              Delete Item
             </Button>
           </div>
         </form>

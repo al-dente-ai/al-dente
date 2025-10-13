@@ -75,6 +75,11 @@ export class ItemsService {
         orderClause = `ORDER BY name ${order.toUpperCase()}, created_at DESC`;
       } else if (sort === 'expiry') {
         orderClause = `ORDER BY expiry ${order.toUpperCase()} NULLS LAST, created_at DESC`;
+      } else if (sort === 'amount') {
+        orderClause = `ORDER BY amount ${order.toUpperCase()} NULLS LAST, created_at DESC`;
+      } else if (sort === 'categories') {
+        // Sort by first category alphabetically
+        orderClause = `ORDER BY array_to_string(categories, ',') ${order.toUpperCase()}, created_at DESC`;
       }
 
       // Get total count

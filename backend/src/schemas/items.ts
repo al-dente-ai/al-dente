@@ -32,7 +32,7 @@ export const itemsQuerySchema = z.object({
   categories: z.string().optional().transform((val) => 
     val ? val.split(',').map(c => c.trim()).filter(Boolean) : undefined
   ),
-  sort: z.enum(['name', 'expiry']).default('expiry'),
+  sort: z.enum(['name', 'expiry', 'amount', 'categories']).default('expiry'),
   order: z.enum(['asc', 'desc']).default('asc'),
 });
 

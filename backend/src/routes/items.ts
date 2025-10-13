@@ -145,7 +145,7 @@ router.post('/', validateBody(createItemSchema), createItem);
  *         name: sort
  *         schema:
  *           type: string
- *           enum: [name, expiry]
+ *           enum: [name, expiry, amount, categories]
  *           default: expiry
  *         description: Field to sort by
  *       - in: query

@@ -34,7 +34,7 @@ export interface ItemsQuery {
   pageSize?: number;
   q?: string;
   categories?: string[];
-  sort?: 'name' | 'expiry';
+  sort?: 'name' | 'expiry' | 'amount' | 'categories';
   order?: 'asc' | 'desc';
 }
 
