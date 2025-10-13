@@ -37,10 +37,10 @@ export const useAuth = create<AuthStore>()(
 
         try {
           const { data } = await api.post<AuthResponse>('/auth/login', credentials);
-          
+
           // Set auth header for future requests
           api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
-          
+
           set((state) => {
             state.token = data.token;
             state.isLoading = false;
@@ -65,10 +65,10 @@ export const useAuth = create<AuthStore>()(
 
         try {
           const { data } = await api.post<AuthResponse>('/auth/signup', userData);
-          
+
           // Set auth header for future requests
           api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
-          
+
           set((state) => {
             state.token = data.token;
             state.isLoading = false;
@@ -86,7 +86,7 @@ export const useAuth = create<AuthStore>()(
       logout: () => {
         // Clear auth header
         delete api.defaults.headers.common.Authorization;
-        
+
         set((state) => {
           state.token = undefined;
           state.user = undefined;

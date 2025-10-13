@@ -11,23 +11,17 @@ export default function Landing() {
       <main className="mx-auto max-w-6xl px-6 pt-32 pb-16">
         <div className="text-center">
           <h1 className="mb-6 text-5xl font-bold text-neutral-800">
-            Smart Pantry Management &
-            <span className="text-primary-500"> AI Recipe Generation</span>
+            Smart Pantry Management &<span className="text-primary-500"> AI Recipe Generation</span>
           </h1>
           <p className="mb-8 text-xl text-neutral-600">
-            Track your pantry items with AI-powered image recognition and generate personalized recipes based on what you have available.
+            Track your pantry items with AI-powered image recognition and generate personalized
+            recipes based on what you have available.
           </p>
           <div className="flex justify-center space-x-4">
-            <Link
-              to="/signup"
-              className="btn btn-primary text-lg px-8 py-3"
-            >
+            <Link to="/signup" className="btn btn-primary text-lg px-8 py-3">
               Get Started
             </Link>
-            <Link
-              to="#how-it-works"
-              className="btn btn-secondary text-lg px-8 py-3"
-            >
+            <Link to="#how-it-works" className="btn btn-secondary text-lg px-8 py-3">
               How It Works
             </Link>
           </div>
@@ -35,29 +29,30 @@ export default function Landing() {
 
         {/* How It Works */}
         <section id="how-it-works" className="mt-24">
-          <h2 className="mb-12 text-center text-3xl font-bold text-neutral-800">
-            How It Works
-          </h2>
+          <h2 className="mb-12 text-center text-3xl font-bold text-neutral-800">How It Works</h2>
           <div className="grid gap-8 md:grid-cols-3">
             <div className="card text-center">
               <div className="mb-4 text-4xl">📸</div>
               <h3 className="mb-2 text-xl font-semibold text-neutral-800">1. Scan</h3>
               <p className="text-neutral-600">
-                Upload photos of your food items and let AI automatically identify and categorize them.
+                Upload photos of your food items and let AI automatically identify and categorize
+                them.
               </p>
             </div>
             <div className="card text-center">
               <div className="mb-4 text-4xl">📦</div>
               <h3 className="mb-2 text-xl font-semibold text-neutral-800">2. Track</h3>
               <p className="text-neutral-600">
-                Manage your pantry inventory with expiry dates, categories, and smart search features.
+                Manage your pantry inventory with expiry dates, categories, and smart search
+                features.
               </p>
             </div>
             <div className="card text-center">
               <div className="mb-4 text-4xl">👨‍🍳</div>
               <h3 className="mb-2 text-xl font-semibold text-neutral-800">3. Cook</h3>
               <p className="text-neutral-600">
-                Generate personalized recipes based on your available ingredients with AI assistance.
+                Generate personalized recipes based on your available ingredients with AI
+                assistance.
               </p>
             </div>
           </div>
@@ -65,9 +60,7 @@ export default function Landing() {
 
         {/* Features */}
         <section className="mt-24">
-          <h2 className="mb-12 text-center text-3xl font-bold text-neutral-800">
-            Features
-          </h2>
+          <h2 className="mb-12 text-center text-3xl font-bold text-neutral-800">Features</h2>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="card">
               <h3 className="mb-2 text-lg font-semibold text-neutral-800">AI Food Recognition</h3>

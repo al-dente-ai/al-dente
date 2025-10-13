@@ -22,17 +22,14 @@ const ChipsMultiSelect = forwardRef<HTMLDivElement, ChipsMultiSelectProps>(
     const toggle = (val: string) => {
       if (disabled) return;
       const set = new Set(value);
-      if (set.has(val)) set.delete(val); else set.add(val);
+      if (set.has(val)) set.delete(val);
+      else set.add(val);
       onChange(Array.from(set));
     };
 
     return (
       <div ref={ref} className={cn('w-full', className)}>
-        {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {label}
-          </label>
-        )}
+        {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
         <div className="flex flex-wrap gap-2">
           {options.map((opt) => {
             const isSelected = value.includes(opt.value);
@@ -55,12 +52,8 @@ const ChipsMultiSelect = forwardRef<HTMLDivElement, ChipsMultiSelectProps>(
             );
           })}
         </div>
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
-        )}
-        {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">{helperText}</p>
-        )}
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
       </div>
     );
   }
@@ -69,6 +62,3 @@ const ChipsMultiSelect = forwardRef<HTMLDivElement, ChipsMultiSelectProps>(
 ChipsMultiSelect.displayName = 'ChipsMultiSelect';
 
 export default ChipsMultiSelect;
-
-
-

@@ -54,79 +54,72 @@ export default function Signup() {
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-neutral-800">
-              Create your account
-            </h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Or{' '}
-            <Link to="/login" className="font-medium text-primary-500 hover:text-primary-600">
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
-
-        <Card>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            <Input
-              label="Email address"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              error={errors.email?.message}
-              helperText="We'll use this to send you login information."
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              autoComplete="new-password"
-              {...register('password')}
-              error={errors.password?.message}
-              helperText="Must be at least 8 characters long."
-            />
-
-            <Input
-              label="Confirm password"
-              type="password"
-              autoComplete="new-password"
-              {...register('confirmPassword')}
-              error={errors.confirmPassword?.message}
-            />
-
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={isLoading}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Creating account...' : 'Create account'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-xs text-neutral-500 text-center">
-            By creating an account, you agree to our{' '}
-            <a href="#" className="text-primary-500 hover:text-primary-600">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="#" className="text-primary-500 hover:text-primary-600">
-              Privacy Policy
-            </a>
-            .
+            <h2 className="text-3xl font-bold text-neutral-800">Create your account</h2>
+            <p className="mt-2 text-sm text-neutral-600">
+              Or{' '}
+              <Link to="/login" className="font-medium text-primary-500 hover:text-primary-600">
+                sign in to your existing account
+              </Link>
+            </p>
           </div>
-        </Card>
 
-        <div className="mt-8 text-center">
-          <Link to="/" className="text-sm text-neutral-600 hover:text-neutral-800">
-            ← Back to home
-          </Link>
-        </div>
+          <Card>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              <Input
+                label="Email address"
+                type="email"
+                autoComplete="email"
+                {...register('email')}
+                error={errors.email?.message}
+                helperText="We'll use this to send you login information."
+              />
+
+              <Input
+                label="Password"
+                type="password"
+                autoComplete="new-password"
+                {...register('password')}
+                error={errors.password?.message}
+                helperText="Must be at least 8 characters long."
+              />
+
+              <Input
+                label="Confirm password"
+                type="password"
+                autoComplete="new-password"
+                {...register('confirmPassword')}
+                error={errors.confirmPassword?.message}
+              />
+
+              <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+                {isLoading ? 'Creating account...' : 'Create account'}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-xs text-neutral-500 text-center">
+              By creating an account, you agree to our{' '}
+              <a href="#" className="text-primary-500 hover:text-primary-600">
+                Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="#" className="text-primary-500 hover:text-primary-600">
+                Privacy Policy
+              </a>
+              .
+            </div>
+          </Card>
+
+          <div className="mt-8 text-center">
+            <Link to="/" className="text-sm text-neutral-600 hover:text-neutral-800">
+              ← Back to home
+            </Link>
+          </div>
         </div>
       </div>
     </div>

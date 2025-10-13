@@ -54,57 +54,50 @@ export default function Login() {
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-neutral-800">
-              Sign in to your account
-            </h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Or{' '}
-            <Link to="/signup" className="font-medium text-primary-500 hover:text-primary-600">
-              create a new account
+            <h2 className="text-3xl font-bold text-neutral-800">Sign in to your account</h2>
+            <p className="mt-2 text-sm text-neutral-600">
+              Or{' '}
+              <Link to="/signup" className="font-medium text-primary-500 hover:text-primary-600">
+                create a new account
+              </Link>
+            </p>
+          </div>
+
+          <Card>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              <Input
+                label="Email address"
+                type="email"
+                autoComplete="email"
+                {...register('email')}
+                error={errors.email?.message}
+              />
+
+              <Input
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                {...register('password')}
+                error={errors.password?.message}
+              />
+
+              <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+          </Card>
+
+          <div className="mt-8 text-center">
+            <Link to="/" className="text-sm text-neutral-600 hover:text-neutral-800">
+              ← Back to home
             </Link>
-          </p>
-        </div>
-
-        <Card>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            <Input
-              label="Email address"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              error={errors.email?.message}
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              {...register('password')}
-              error={errors.password?.message}
-            />
-
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={isLoading}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
-        </Card>
-
-        <div className="mt-8 text-center">
-          <Link to="/" className="text-sm text-neutral-600 hover:text-neutral-800">
-            ← Back to home
-          </Link>
-        </div>
+          </div>
         </div>
       </div>
     </div>
