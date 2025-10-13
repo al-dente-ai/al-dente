@@ -2,8 +2,9 @@ import Axios from 'axios';
 import type { ApiError } from './types';
 
 // Create axios instance
+const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 const api = Axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: base,
   headers: {
     'Content-Type': 'application/json',
   },
