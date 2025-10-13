@@ -11,7 +11,6 @@ import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import Spinner from '../../components/ui/Spinner';
-import Dropdown, { DropdownItem } from '../../components/ui/Dropdown';
 
 const CATEGORIES = [
   { value: 'produce', label: 'Produce' },
@@ -197,6 +196,7 @@ export default function Inventory() {
       expiry: item.expiry || '',
       categories: item.categories,
       notes: item.notes || '',
+      image_url: item.image_url || '',
     });
   };
 
@@ -353,18 +353,23 @@ export default function Inventory() {
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="flex items-center space-x-3 text-left hover:opacity-75 transition-opacity w-full"
+                      >
                         {item.image_url && (
                           <img
                             src={item.image_url}
                             alt={item.name}
-                            className="h-10 w-10 rounded-lg object-cover"
+                            className="h-10 w-10 rounded-lg object-cover cursor-pointer"
                           />
                         )}
                         <div>
-                          <div className="font-medium text-neutral-800">{item.name}</div>
+                          <div className="font-medium text-neutral-800 hover:text-accent-600 cursor-pointer">
+                            {item.name}
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     </TableCell>
                     <TableCell>{item.amount || '—'}</TableCell>
                     <TableCell>
@@ -393,28 +398,25 @@ export default function Inventory() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Dropdown
-                        trigger={
-                          <button className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
-                            <svg
-                              className="w-5 h-5 text-neutral-600"
-                              fill="currentColor"
-                              viewBox="0 0 16 16"
-                            >
-                              <circle cx="8" cy="3" r="1.5" />
-                              <circle cx="8" cy="8" r="1.5" />
-                              <circle cx="8" cy="13" r="1.5" />
-                            </svg>
-                          </button>
-                        }
+                      <button
+                        onClick={() => handleDeleteItem(item)}
+                        className="p-2 hover:bg-red-50 rounded-full transition-colors group"
+                        title="Delete item"
                       >
-                        <DropdownItem onClick={() => openEditModal(item)}>
-                          Edit
-                        </DropdownItem>
-                        <DropdownItem onClick={() => handleDeleteItem(item)} variant="danger">
-                          Delete
-                        </DropdownItem>
-                      </Dropdown>
+                        <svg
+                          className="w-5 h-5 text-neutral-400 group-hover:text-red-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -583,25 +585,42 @@ export default function Inventory() {
               </div>
             )}
           </div>
-          <div className="flex space-x-3 pt-4">
-            <Button
-              type="submit"
-              className="flex-1"
-              isLoading={isSubmitting}
-            >
-              Update Item
-            </Button>
+          <div className="space-y-3 pt-4">
+            <div className="flex space-x-3">
+              <Button
+                type="submit"
+                className="flex-1"
+                isLoading={isSubmitting}
+              >
+                Update Item
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setEditingItem(null);
+                  editForm.reset();
+                  setEditImagePreview(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="w-full text-red-600 hover:text-red-700 border-red-300 hover:border-red-400 hover:bg-red-50"
               onClick={() => {
-                setEditingItem(null);
-                editForm.reset();
-                setEditImagePreview(null);
+                if (editingItem) {
+                  handleDeleteItem(editingItem);
+                  setEditingItem(null);
+                  editForm.reset();
+                  setEditImagePreview(null);
+                }
               }}
             >
-              Cancel
+              Delete Item
             </Button>
           </div>
         </form>
