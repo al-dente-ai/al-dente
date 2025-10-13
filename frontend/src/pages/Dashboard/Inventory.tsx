@@ -326,16 +326,16 @@ export default function Inventory() {
                       className="rounded border-neutral-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
                     />
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="hidden sm:table-cell">
                     <SortableHeader column="name" label="Item" />
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="hidden lg:table-cell">
                     <SortableHeader column="amount" label="Amount" />
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="hidden xl:table-cell">
                     <SortableHeader column="categories" label="Categories" />
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="hidden md:table-cell">
                     <SortableHeader column="expiry" label="Expiry" />
                   </TableHead>
                   <TableHead><span></span></TableHead>
@@ -352,7 +352,7 @@ export default function Inventory() {
                         className="rounded border-neutral-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <button
                         onClick={() => openEditModal(item)}
                         className="flex items-center space-x-3 text-left hover:opacity-75 transition-opacity w-full"
@@ -371,8 +371,8 @@ export default function Inventory() {
                         </div>
                       </button>
                     </TableCell>
-                    <TableCell>{item.amount || '—'}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">{item.amount || '—'}</TableCell>
+                    <TableCell className="hidden xl:table-cell">
                       <div className="flex flex-wrap gap-1">
                         {item.categories.map((category) => (
                           <span
@@ -384,7 +384,7 @@ export default function Inventory() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {item.expiry ? (
                         <span className={`text-sm ${
                           new Date(item.expiry) < new Date() ? 'text-red-600 font-medium' :
