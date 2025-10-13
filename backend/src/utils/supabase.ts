@@ -7,16 +7,12 @@ class SupabaseService {
   private client: SupabaseClient;
 
   constructor() {
-    this.client = createClient(
-      config.supabase.url,
-      config.supabase.serviceRoleKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    this.client = createClient(config.supabase.url, config.supabase.serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
   }
 
   async uploadImage(
@@ -26,7 +22,7 @@ class SupabaseService {
     mimeType: string
   ): Promise<{ path: string; publicUrl: string }> {
     const uploadStartTime = Date.now();
-    
+
     try {
       console.log('📤 [SUPABASE] Starting image upload', {
         userId,
@@ -34,12 +30,12 @@ class SupabaseService {
         mimeType,
         bufferSize: `${(buffer.length / 1024 / 1024).toFixed(2)}MB`,
         bucketName: config.supabase.imageBucket,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Extract file extension from mime type or filename
       const extension = this.getFileExtension(mimeType, originalFilename);
-      
+
       // Generate unique filename
       const filename = `${uuidv4()}${extension}`;
       const filePath = `${userId}/${filename}`;
@@ -48,7 +44,7 @@ class SupabaseService {
         userId,
         generatedFilename: filename,
         fullPath: filePath,
-        extension
+        extension,
       });
 
       // Upload to Supabase storage
@@ -67,7 +63,7 @@ class SupabaseService {
           error: error.message,
           details: error,
           filePath,
-          duration: `${uploadApiEndTime - uploadApiStartTime}ms`
+          duration: `${uploadApiEndTime - uploadApiStartTime}ms`,
         });
         logger.error('Supabase upload error', error);
         throw new Error(`Upload failed: ${error.message}`);
@@ -81,7 +77,7 @@ class SupabaseService {
       console.log('✅ [SUPABASE] File uploaded successfully', {
         userId,
         uploadedPath: data.path,
-        uploadDuration: `${uploadApiEndTime - uploadApiStartTime}ms`
+        uploadDuration: `${uploadApiEndTime - uploadApiStartTime}ms`,
       });
 
       // Get public URL
@@ -98,7 +94,7 @@ class SupabaseService {
         publicUrl: urlData.publicUrl,
         totalDuration: `${totalUploadTime}ms`,
         uploadApiDuration: `${uploadApiEndTime - uploadApiStartTime}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       return {
@@ -107,14 +103,14 @@ class SupabaseService {
       };
     } catch (error) {
       const totalUploadTime = Date.now() - uploadStartTime;
-      
+
       console.error('❌ [SUPABASE] Upload process failed', {
         userId,
         error: error instanceof Error ? error.message : 'Unknown error',
         duration: `${totalUploadTime}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
+
       logger.error('Image upload failed', error);
       throw error;
     }
@@ -160,9 +156,7 @@ class SupabaseService {
   }
 
   getPublicUrl(filePath: string): string {
-    const { data } = this.client.storage
-      .from(config.supabase.imageBucket)
-      .getPublicUrl(filePath);
+    const { data } = this.client.storage.from(config.supabase.imageBucket).getPublicUrl(filePath);
 
     return data.publicUrl;
   }

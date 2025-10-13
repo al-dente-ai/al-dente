@@ -2,11 +2,11 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { itemsService } from '../services/itemsService';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import { validateBody, validateQuery, validateParams } from '../middleware/validate';
-import { 
-  createItemSchema, 
-  updateItemSchema, 
-  itemsQuerySchema, 
-  itemParamsSchema 
+import {
+  createItemSchema,
+  updateItemSchema,
+  itemsQuerySchema,
+  itemParamsSchema,
 } from '../schemas/items';
 
 const router = Router();
@@ -18,7 +18,7 @@ const createItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const item = await itemsService.createItem(authReq.user.id, authReq.body);
-    
+
     res.status(201).json(item);
   } catch (error) {
     next(error);
@@ -29,7 +29,7 @@ const getItems = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const result = await itemsService.getItems(authReq.user.id, authReq.query as any);
-    
+
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -40,7 +40,7 @@ const getItemById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const item = await itemsService.getItemById(authReq.user.id, authReq.params.id);
-    
+
     res.status(200).json(item);
   } catch (error) {
     next(error);
@@ -51,7 +51,7 @@ const updateItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const item = await itemsService.updateItem(authReq.user.id, authReq.params.id, authReq.body);
-    
+
     res.status(200).json(item);
   } catch (error) {
     next(error);
@@ -62,7 +62,7 @@ const deleteItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     await itemsService.deleteItem(authReq.user.id, authReq.params.id);
-    
+
     res.status(204).send();
   } catch (error) {
     next(error);

@@ -16,7 +16,7 @@ const upload = multer({
   },
   fileFilter: (_req, file, cb) => {
     const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    
+
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -33,14 +33,14 @@ const uploadFile = async (req: Request, res: Response, next: NextFunction) => {
   const startTime = Date.now();
   try {
     const authReq = req as AuthenticatedRequest;
-    
+
     console.log('🚀 [SCAN ROUTE] Upload request received', {
       userId: authReq.user.id,
       userAgent: authReq.get('User-Agent'),
       contentType: authReq.get('Content-Type'),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     // Check if file was uploaded
     if (!authReq.file) {
       console.error('❌ [SCAN ROUTE] No file provided in request');
@@ -52,7 +52,7 @@ const uploadFile = async (req: Request, res: Response, next: NextFunction) => {
       filename: authReq.file.originalname,
       fileSize: `${(authReq.file.size / 1024 / 1024).toFixed(2)}MB`,
       mimeType: authReq.file.mimetype,
-      bufferSize: authReq.file.buffer.length
+      bufferSize: authReq.file.buffer.length,
     });
 
     // Validate the uploaded file
@@ -78,20 +78,20 @@ const uploadFile = async (req: Request, res: Response, next: NextFunction) => {
       imageUrl: result.image_url,
       predictionName: result.prediction.name,
       confidence: result.prediction.confidence,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     res.status(200).json(result);
   } catch (error) {
     const endTime = Date.now();
     const duration = endTime - startTime;
-    
+
     console.error('❌ [SCAN ROUTE] Upload processing failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
       duration: `${duration}ms`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     next(error);
   }
 };

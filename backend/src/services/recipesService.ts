@@ -29,17 +29,20 @@ export class RecipesService {
     try {
       // Get user's pantry items
       const pantryItems = await itemsService.getUserItems(userId);
-      
-      logger.info({ 
-        userId, 
-        pantryItemCount: pantryItems.length, 
-        mealType: meal_type,
-        count 
-      }, 'Starting recipe generation');
+
+      logger.info(
+        {
+          userId,
+          pantryItemCount: pantryItems.length,
+          mealType: meal_type,
+          count,
+        },
+        'Starting recipe generation'
+      );
 
       // Generate recipes using OpenAI
       const aiRecipes = await openaiService.generateRecipes(
-        pantryItems.map(item => ({
+        pantryItems.map((item) => ({
           id: item.id,
           name: item.name,
           categories: item.categories,
@@ -63,7 +66,7 @@ export class RecipesService {
         if (generate_images) {
           try {
             logger.info({ recipeTitle: aiRecipe.title }, 'Generating recipe image');
-            
+
             const generatedImageUrl = await openaiService.generateRecipeImage(
               aiRecipe.title,
               aiRecipe.description
@@ -82,10 +85,13 @@ export class RecipesService {
               imageUrl = publicUrl;
             }
           } catch (imageError) {
-            logger.warn({ 
-              recipeTitle: aiRecipe.title, 
-              error: imageError 
-            }, 'Failed to generate recipe image, continuing without image');
+            logger.warn(
+              {
+                recipeTitle: aiRecipe.title,
+                error: imageError,
+              },
+              'Failed to generate recipe image, continuing without image'
+            );
           }
         }
 
@@ -97,7 +103,7 @@ export class RecipesService {
           aiUsesItemIdsType: typeof aiRecipe.uses_item_ids,
           aiUsesItemIdsLength: aiRecipe.uses_item_ids ? aiRecipe.uses_item_ids.length : 0,
           hasImageUrl: !!imageUrl,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         // Create recipe in database
@@ -116,10 +122,13 @@ export class RecipesService {
         recipes.push(recipe);
       }
 
-      logger.info({ 
-        userId, 
-        generatedCount: recipes.length 
-      }, 'Recipe generation completed');
+      logger.info(
+        {
+          userId,
+          generatedCount: recipes.length,
+        },
+        'Recipe generation completed'
+      );
 
       return recipes;
     } catch (error) {
@@ -144,14 +153,14 @@ export class RecipesService {
 
       // Validate and filter UUID array
       const validatedUUIDs = this.validateAndFilterUUIDs(uses_item_ids || []);
-      
+
       console.log('🔍 [RECIPES SERVICE] Creating recipe with data:', {
         userId,
         title,
         meal_type,
         originalUsesItemIds: uses_item_ids,
         validatedUUIDs,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const result = await db.query(
@@ -176,13 +185,13 @@ export class RecipesService {
       );
 
       const recipe = result.rows[0] as Recipe;
-      
+
       console.log('✅ [RECIPES SERVICE] Recipe created successfully:', {
         recipeId: recipe.id,
         userId,
-        finalUsesItemIds: recipe.uses_item_ids
+        finalUsesItemIds: recipe.uses_item_ids,
       });
-      
+
       logger.info({ recipeId: recipe.id, userId }, 'Recipe created successfully');
 
       return recipe;
@@ -190,9 +199,9 @@ export class RecipesService {
       console.error('❌ [RECIPES SERVICE] Failed to create recipe:', {
         error: error instanceof Error ? error.message : 'Unknown error',
         errorStack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
+
       logger.error('Failed to create recipe', error);
       throw new Error('Failed to create recipe');
     }
@@ -200,18 +209,18 @@ export class RecipesService {
 
   private validateAndFilterUUIDs(uuids: string[]): string[] {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    
-    const validUUIDs = uuids.filter(uuid => {
+
+    const validUUIDs = uuids.filter((uuid) => {
       if (!uuid || typeof uuid !== 'string') {
         console.warn('⚠️ [RECIPES SERVICE] Invalid UUID type:', { uuid, type: typeof uuid });
         return false;
       }
-      
+
       const isValid = uuidRegex.test(uuid);
       if (!isValid) {
         console.warn('⚠️ [RECIPES SERVICE] Invalid UUID format:', { uuid });
       }
-      
+
       return isValid;
     });
 
@@ -220,7 +229,7 @@ export class RecipesService {
       validCount: validUUIDs.length,
       originalUUIDs: uuids,
       validUUIDs,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     return validUUIDs;
@@ -232,10 +241,9 @@ export class RecipesService {
       const offset = calculateOffset(page, pageSize);
 
       // Get total count
-      const countResult = await db.query(
-        'SELECT COUNT(*) FROM recipes WHERE user_id = $1',
-        [userId]
-      );
+      const countResult = await db.query('SELECT COUNT(*) FROM recipes WHERE user_id = $1', [
+        userId,
+      ]);
       const total = parseInt(countResult.rows[0].count, 10);
 
       // Get recipes
@@ -258,10 +266,10 @@ export class RecipesService {
 
   async getRecipeById(userId: string, recipeId: string): Promise<Recipe> {
     try {
-      const result = await db.query(
-        'SELECT * FROM recipes WHERE id = $1 AND user_id = $2',
-        [recipeId, userId]
-      );
+      const result = await db.query('SELECT * FROM recipes WHERE id = $1 AND user_id = $2', [
+        recipeId,
+        userId,
+      ]);
 
       const recipe = result.rows[0];
       if (!recipe) {

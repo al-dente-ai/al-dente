@@ -24,7 +24,7 @@ export function createPaginationResult<T>(
   pageSize: number
 ): PaginationResult<T> {
   const totalPages = Math.ceil(total / pageSize);
-  
+
   return {
     data,
     page,
@@ -44,9 +44,8 @@ export function validatePaginationParams(
   const parsedPageSize = typeof pageSize === 'string' ? parseInt(pageSize, 10) : pageSize;
 
   const validPage = parsedPage && parsedPage > 0 ? parsedPage : 1;
-  const validPageSize = parsedPageSize && parsedPageSize > 0 && parsedPageSize <= 100 
-    ? parsedPageSize 
-    : 20;
+  const validPageSize =
+    parsedPageSize && parsedPageSize > 0 && parsedPageSize <= 100 ? parsedPageSize : 20;
 
   return {
     page: validPage,

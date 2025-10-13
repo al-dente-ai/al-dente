@@ -51,7 +51,7 @@ router.use(authRateLimit);
 router.post('/signup', validateBody(signupSchema), async (req, res, next) => {
   try {
     const result = await authService.signup(req.body);
-    
+
     res.status(201).json(result);
   } catch (error) {
     next(error);
@@ -101,9 +101,9 @@ router.post('/login', validateBody(loginSchema), async (req, res, next) => {
   try {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
-    
+
     const result = await authService.login(req.body, ip, userAgent);
-    
+
     res.status(200).json(result);
   } catch (error) {
     next(error);

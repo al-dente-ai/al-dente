@@ -66,20 +66,23 @@ export function errorHandler(
   _next: NextFunction
 ): void {
   // Log the error with request context
-  logger.error({
-    error: {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      statusCode: error.statusCode,
-      code: error.code,
+  logger.error(
+    {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        statusCode: error.statusCode,
+        code: error.code,
+      },
+      request: {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+      },
     },
-    request: {
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-    },
-  }, 'Request error');
+    'Request error'
+  );
 
   // Default to 500 if no status code is set
   const statusCode = error.statusCode || 500;
@@ -87,9 +90,7 @@ export function errorHandler(
 
   // Don't expose internal errors in production
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const message = statusCode >= 500 && !isDevelopment 
-    ? 'Internal server error' 
-    : error.message;
+  const message = statusCode >= 500 && !isDevelopment ? 'Internal server error' : error.message;
 
   const errorResponse: any = {
     error: {

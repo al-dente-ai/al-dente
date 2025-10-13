@@ -10,7 +10,6 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-
 export interface JWTPayload {
   sub: string;
   email: string;
@@ -18,14 +17,10 @@ export interface JWTPayload {
   iat: number;
 }
 
-export async function authenticate(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.status(401).json({
         error: {
@@ -40,7 +35,7 @@ export async function authenticate(
 
     try {
       const payload = jwt.verify(token, config.auth.jwtSecret) as JWTPayload;
-      
+
       (req as AuthenticatedRequest).user = {
         id: payload.sub,
         email: payload.email,
