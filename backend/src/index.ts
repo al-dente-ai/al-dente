@@ -23,26 +23,32 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Security middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images from Supabase
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images from Supabase
+  })
+);
 
 // CORS configuration
-app.use(cors({
-  origin: config.cors.frontendOrigin,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: config.cors.frontendOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 // Request logging
-app.use(pinoHttp({
-  logger,
-  genReqId: () => randomUUID(),
-  autoLogging: {
-    ignore: (req) => req.url === '/health',
-  },
-}));
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: () => randomUUID(),
+    autoLogging: {
+      ignore: (req) => req.url === '/health',
+    },
+  })
+);
 
 // Body parsing middleware
 app.use(express.json({ limit: '1mb' }));
@@ -52,10 +58,14 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(generalRateLimit);
 
 // Swagger API documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Al Dente API Documentation',
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Al Dente API Documentation',
+  })
+);
 
 /**
  * @swagger
@@ -81,7 +91,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 app.get('/health', async (_req, res) => {
   try {
     const dbHealthy = await db.healthCheck();
-    
+
     res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),

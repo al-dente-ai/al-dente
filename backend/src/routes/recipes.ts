@@ -2,11 +2,11 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { recipesService } from '../services/recipesService';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import { validateBody, validateQuery, validateParams } from '../middleware/validate';
-import { 
-  generateRecipesSchema, 
-  createRecipeSchema, 
-  recipesQuerySchema, 
-  recipeParamsSchema 
+import {
+  generateRecipesSchema,
+  createRecipeSchema,
+  recipesQuerySchema,
+  recipeParamsSchema,
 } from '../schemas/recipes';
 
 const router = Router();
@@ -18,7 +18,7 @@ const generateRecipes = async (req: Request, res: Response, next: NextFunction) 
   try {
     const authReq = req as AuthenticatedRequest;
     const recipes = await recipesService.generateRecipes(authReq.user.id, authReq.body);
-    
+
     res.status(201).json({ data: recipes });
   } catch (error) {
     next(error);
@@ -29,7 +29,7 @@ const createRecipe = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const authReq = req as AuthenticatedRequest;
     const recipe = await recipesService.createRecipe(authReq.user.id, authReq.body);
-    
+
     res.status(201).json(recipe);
   } catch (error) {
     next(error);
@@ -40,7 +40,7 @@ const getRecipes = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const result = await recipesService.getRecipes(authReq.user.id, authReq.query as any);
-    
+
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -51,7 +51,7 @@ const getRecipeById = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const authReq = req as AuthenticatedRequest;
     const recipe = await recipesService.getRecipeById(authReq.user.id, authReq.params.id);
-    
+
     res.status(200).json(recipe);
   } catch (error) {
     next(error);
@@ -62,7 +62,7 @@ const deleteRecipe = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const authReq = req as AuthenticatedRequest;
     await recipesService.deleteRecipe(authReq.user.id, authReq.params.id);
-    
+
     res.status(204).send();
   } catch (error) {
     next(error);

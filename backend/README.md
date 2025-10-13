@@ -38,6 +38,7 @@ A production-ready TypeScript Express REST API for pantry tracking and AI-powere
 ### Installation
 
 1. **Clone and install dependencies**:
+
    ```bash
    git clone <repository-url>
    cd al-dente
@@ -45,11 +46,13 @@ A production-ready TypeScript Express REST API for pantry tracking and AI-powere
    ```
 
 2. **Environment Configuration**:
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Edit `.env` with your values:
+
    ```env
    NODE_ENV=development
    PORT=3000
@@ -64,10 +67,11 @@ A production-ready TypeScript Express REST API for pantry tracking and AI-powere
    ```
 
 3. **Database Setup**:
+
    ```bash
    # Create database
    createdb al_dente
-   
+
    # Run migrations
    npm run build
    npm run migrate
@@ -85,6 +89,7 @@ The API will be available at `http://localhost:3000`
 📚 **Interactive API Documentation**: Access the complete Swagger/OpenAPI documentation at `http://localhost:3000/api-docs`
 
 The documentation includes:
+
 - Complete endpoint specifications with request/response schemas
 - Interactive API testing interface
 - Authentication examples
@@ -98,9 +103,11 @@ For a quick overview of available endpoints, visit `http://localhost:3000/api`
 ### Authentication
 
 #### POST /auth/signup
+
 Create a new user account.
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -109,6 +116,7 @@ Create a new user account.
 ```
 
 **Response** (201):
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -116,9 +124,11 @@ Create a new user account.
 ```
 
 #### POST /auth/login
+
 Authenticate existing user.
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -127,6 +137,7 @@ Authenticate existing user.
 ```
 
 **Response** (200):
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -138,9 +149,11 @@ Authenticate existing user.
 All item endpoints require `Authorization: Bearer <token>` header.
 
 #### GET /items
+
 List pantry items with pagination and search.
 
 **Query Parameters**:
+
 - `page` (number, default: 1): Page number
 - `pageSize` (number, default: 20, max: 100): Items per page
 - `q` (string): Search term (fuzzy search on name and notes)
@@ -151,6 +164,7 @@ List pantry items with pagination and search.
 **Example**: `GET /items?page=1&pageSize=10&q=tomato&categories=produce,dairy&sort=expiry&order=desc`
 
 **Response** (200):
+
 ```json
 {
   "data": [
@@ -177,9 +191,11 @@ List pantry items with pagination and search.
 ```
 
 #### POST /items
+
 Create a new pantry item.
 
 **Request**:
+
 ```json
 {
   "name": "Organic Eggs",
@@ -194,16 +210,19 @@ Create a new pantry item.
 **Response** (201): Returns the created item object.
 
 #### GET /items/:id
+
 Get a specific pantry item.
 
 **Response** (200): Returns the item object.
 
 #### PUT /items/:id
+
 Update a pantry item.
 
 **Request**: Same as POST, but all fields are optional.
 
 #### DELETE /items/:id
+
 Delete a pantry item.
 
 **Response** (204): No content.
@@ -211,13 +230,16 @@ Delete a pantry item.
 ### Food Scanning
 
 #### POST /scan/upload
+
 Upload and analyze a food image using AI.
 
 **Request**: `multipart/form-data` with a `file` field
+
 - Supported formats: PNG, JPEG, WebP
 - Max size: 16MB
 
 **Example using curl**:
+
 ```bash
 curl -X POST http://localhost:3000/scan/upload \
   -H "Authorization: Bearer <token>" \
@@ -225,6 +247,7 @@ curl -X POST http://localhost:3000/scan/upload \
 ```
 
 **Response** (200):
+
 ```json
 {
   "image_url": "https://supabase-url/storage/user-id/uuid_filename.jpg",
@@ -242,9 +265,11 @@ curl -X POST http://localhost:3000/scan/upload \
 ### Recipes
 
 #### POST /recipes/generate
+
 Generate AI-powered recipes using available pantry items.
 
 **Request**:
+
 ```json
 {
   "meal_type": "dinner",
@@ -255,6 +280,7 @@ Generate AI-powered recipes using available pantry items.
 ```
 
 **Response** (201):
+
 ```json
 {
   "data": [
@@ -290,16 +316,20 @@ Generate AI-powered recipes using available pantry items.
 ```
 
 #### GET /recipes
+
 List user recipes with pagination.
 
 **Query Parameters**:
+
 - `page` (number, default: 1)
 - `pageSize` (number, default: 20, max: 100)
 
 #### GET /recipes/:id
+
 Get a specific recipe.
 
 #### DELETE /recipes/:id
+
 Delete a recipe.
 
 ## Example Usage
@@ -307,6 +337,7 @@ Delete a recipe.
 ### Complete workflow example:
 
 1. **Sign up**:
+
    ```bash
    curl -X POST http://localhost:3000/auth/signup \
      -H "Content-Type: application/json" \
@@ -314,6 +345,7 @@ Delete a recipe.
    ```
 
 2. **Scan food item**:
+
    ```bash
    curl -X POST http://localhost:3000/scan/upload \
      -H "Authorization: Bearer <token>" \
@@ -321,6 +353,7 @@ Delete a recipe.
    ```
 
 3. **Add item to pantry**:
+
    ```bash
    curl -X POST http://localhost:3000/items \
      -H "Authorization: Bearer <token>" \
@@ -356,6 +389,7 @@ The API uses PostgreSQL with the following main tables:
 - **recipes**: Generated and custom recipes with ingredients and steps
 
 Required extensions:
+
 - `uuid-ossp`: For UUID generation
 - `pg_trgm`: For fuzzy text search
 
@@ -373,16 +407,19 @@ Required extensions:
 ### AI Integration Details
 
 #### OpenAI Vision
+
 - Uses `gpt-4o-mini` for cost-effective image analysis
 - Structured JSON output with confidence scoring
 - Conservative expiry date prediction
 
 #### Recipe Generation
+
 - Uses `gpt-4o-mini` for recipe creation
 - Considers available pantry items and expiry dates
 - Generates recipe images with DALL-E 3
 
 #### Image Generation
+
 - DALL-E 3 for professional food photography
 - Images uploaded to Supabase for CDN delivery
 - Fallback handling if image generation fails
@@ -392,6 +429,7 @@ Required extensions:
 ### Environment Variables
 
 Ensure all required environment variables are set:
+
 - Database connection with SSL in production
 - Strong JWT secret (32+ characters)
 - OpenAI API key with sufficient credits

@@ -70,7 +70,7 @@ const swaggerDefinition = {
           },
         },
       },
-      
+
       // Auth schemas
       SignupRequest: {
         type: 'object',
@@ -140,7 +140,19 @@ const swaggerDefinition = {
       // Item schemas
       Category: {
         type: 'string',
-        enum: ['produce', 'dairy', 'meat', 'spices', 'grains', 'condiments', 'baked', 'beverages', 'frozen', 'canned', 'other'],
+        enum: [
+          'produce',
+          'dairy',
+          'meat',
+          'spices',
+          'grains',
+          'condiments',
+          'baked',
+          'beverages',
+          'frozen',
+          'canned',
+          'other',
+        ],
         description: 'Item category',
       },
       CreateItemRequest: {

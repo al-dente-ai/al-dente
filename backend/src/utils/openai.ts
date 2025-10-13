@@ -15,12 +15,12 @@ class OpenAIService {
 
   async analyzeImage(imageUrl: string): Promise<VisionPrediction> {
     const analysisStartTime = Date.now();
-    
+
     try {
       console.log('🧠 [OPENAI] Starting image analysis', {
         imageUrl,
         model: 'gpt-4o-mini',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const systemPrompt = `You are a food identification assistant. Analyze the image and identify the food item shown. 
@@ -66,17 +66,26 @@ class OpenAIService {
               properties: {
                 name: { type: 'string' },
                 amount: { type: ['string', 'null'] },
-                expiry: { 
-                  type: ['string', 'null'], 
-                  description: 'ISO 8601 date if visible/known' 
+                expiry: {
+                  type: ['string', 'null'],
+                  description: 'ISO 8601 date if visible/known',
                 },
                 categories: {
                   type: 'array',
                   items: {
                     type: 'string',
                     enum: [
-                      'produce', 'dairy', 'meat', 'spices', 'grains', 
-                      'condiments', 'baked', 'beverages', 'frozen', 'canned', 'other'
+                      'produce',
+                      'dairy',
+                      'meat',
+                      'spices',
+                      'grains',
+                      'condiments',
+                      'baked',
+                      'beverages',
+                      'frozen',
+                      'canned',
+                      'other',
                     ],
                   },
                 },
@@ -96,7 +105,7 @@ class OpenAIService {
         responseId: response.id,
         model: response.model,
         usage: response.usage,
-        finishReason: response.choices[0]?.finish_reason
+        finishReason: response.choices[0]?.finish_reason,
       });
 
       const content = response.choices[0]?.message?.content;
@@ -107,11 +116,11 @@ class OpenAIService {
 
       console.log('🔍 [OPENAI] Parsing response content', {
         contentLength: content.length,
-        contentPreview: content.substring(0, 100) + '...'
+        contentPreview: content.substring(0, 100) + '...',
       });
 
       const prediction = JSON.parse(content) as VisionPrediction;
-      
+
       const analysisEndTime = Date.now();
       const totalDuration = analysisEndTime - analysisStartTime;
 
@@ -125,24 +134,24 @@ class OpenAIService {
         totalDuration: `${totalDuration}ms`,
         apiDuration: `${apiEndTime - apiStartTime}ms`,
         usage: response.usage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       logger.info({ prediction }, 'Image analysis completed');
-      
+
       return prediction;
     } catch (error) {
       const analysisEndTime = Date.now();
       const totalDuration = analysisEndTime - analysisStartTime;
-      
+
       console.error('❌ [OPENAI] Analysis failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
         errorStack: error instanceof Error ? error.stack : undefined,
         imageUrl,
         duration: `${totalDuration}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
+
       logger.error('OpenAI image analysis failed', error);
       throw new Error('Failed to analyze image');
     }
@@ -173,26 +182,31 @@ class OpenAIService {
       - Make recipes appropriate for the requested meal type
       - For uses_item_ids: ONLY include the exact ID strings of pantry items that are actually used in the recipe. If no pantry items are used, leave the array empty. Use the exact ID format provided in the pantry items list.`;
 
-      const pantryDescription = pantryItems.map(item => 
-        `- ID: ${item.id} | ${item.name} (${item.amount || 'unknown amount'}, categories: ${item.categories.join(', ')}, expires: ${item.expiry || 'unknown'})`
-      ).join('\n');
+      const pantryDescription = pantryItems
+        .map(
+          (item) =>
+            `- ID: ${item.id} | ${item.name} (${item.amount || 'unknown amount'}, categories: ${item.categories.join(', ')}, expires: ${item.expiry || 'unknown'})`
+        )
+        .join('\n');
 
       console.log('🧠 [OPENAI] Generating recipes with pantry items:', {
         itemCount: pantryItems.length,
         mealType,
         userPrompt,
         count,
-        pantryItemIds: pantryItems.map(item => item.id),
-        timestamp: new Date().toISOString()
+        pantryItemIds: pantryItems.map((item) => item.id),
+        timestamp: new Date().toISOString(),
       });
 
       const mealTypeText = mealType && mealType !== 'any' ? `${mealType} ` : '';
-      const dietaryText = (dietary && dietary.length > 0)
-        ? `All of the following dietary restrictions must be satisfied: ${dietary.join(' AND ')}`
-        : '';
-      const cuisinesText = (cuisines && cuisines.length > 0)
-        ? `Preferred cuisines (choose any that fit): ${cuisines.join(' OR ')}`
-        : '';
+      const dietaryText =
+        dietary && dietary.length > 0
+          ? `All of the following dietary restrictions must be satisfied: ${dietary.join(' AND ')}`
+          : '';
+      const cuisinesText =
+        cuisines && cuisines.length > 0
+          ? `Preferred cuisines (choose any that fit): ${cuisines.join(' OR ')}`
+          : '';
       const userMessage = `Generate ${count} ${mealTypeText}recipe(s) using these pantry items when possible:
 
 ${pantryDescription}
@@ -230,9 +244,9 @@ Please generate recipes that make good use of available ingredients.`;
                     properties: {
                       title: { type: 'string' },
                       description: { type: 'string' },
-                      meal_type: { 
+                      meal_type: {
                         type: 'string',
-                        enum: ['breakfast', 'lunch', 'dinner', 'snack']
+                        enum: ['breakfast', 'lunch', 'dinner', 'snack'],
                       },
                       servings: { type: 'integer', minimum: 1 },
                       prep_time_minutes: { type: 'integer', minimum: 1 },
@@ -255,16 +269,23 @@ Please generate recipes that make good use of available ingredients.`;
                       },
                       uses_item_ids: {
                         type: 'array',
-                        items: { 
+                        items: {
                           type: 'string',
-                          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                          pattern:
+                            '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
                         },
-                        description: 'Array of UUID strings from the provided pantry items that are used in this recipe'
+                        description:
+                          'Array of UUID strings from the provided pantry items that are used in this recipe',
                       },
                     },
                     required: [
-                      'title', 'description', 'meal_type', 'servings', 
-                      'prep_time_minutes', 'ingredients', 'steps'
+                      'title',
+                      'description',
+                      'meal_type',
+                      'servings',
+                      'prep_time_minutes',
+                      'ingredients',
+                      'steps',
                     ],
                     additionalProperties: false,
                   },
@@ -283,22 +304,22 @@ Please generate recipes that make good use of available ingredients.`;
       }
 
       const result = JSON.parse(content) as { recipes: AIRecipe[] };
-      
+
       console.log('🎯 [OPENAI] Recipe generation response parsed:', {
         recipeCount: result.recipes.length,
-        recipes: result.recipes.map(recipe => ({
+        recipes: result.recipes.map((recipe) => ({
           title: recipe.title,
           mealType: recipe.meal_type,
           usesItemIds: recipe.uses_item_ids,
           usesItemIdsCount: recipe.uses_item_ids ? recipe.uses_item_ids.length : 0,
           ingredientCount: recipe.ingredients.length,
-          stepCount: recipe.steps.length
+          stepCount: recipe.steps.length,
         })),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
+
       logger.info({ recipeCount: result.recipes.length }, 'Recipe generation completed');
-      
+
       return result.recipes;
     } catch (error) {
       logger.error('OpenAI recipe generation failed', error);

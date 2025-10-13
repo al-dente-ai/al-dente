@@ -108,10 +108,10 @@ export class ItemsService {
 
   async getItemById(userId: string, itemId: string): Promise<Item> {
     try {
-      const result = await db.query(
-        'SELECT * FROM items WHERE id = $1 AND user_id = $2',
-        [itemId, userId]
-      );
+      const result = await db.query('SELECT * FROM items WHERE id = $1 AND user_id = $2', [
+        itemId,
+        userId,
+      ]);
 
       const item = result.rows[0];
       if (!item) {

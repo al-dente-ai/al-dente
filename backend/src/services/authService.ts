@@ -22,10 +22,7 @@ export class AuthService {
 
     try {
       // Check if user already exists
-      const existingUser = await db.query(
-        'SELECT id FROM users WHERE email = $1',
-        [email]
-      );
+      const existingUser = await db.query('SELECT id FROM users WHERE email = $1', [email]);
 
       if (existingUser.rows.length > 0) {
         throw new ConflictError('User with this email already exists');
@@ -64,10 +61,9 @@ export class AuthService {
 
     try {
       // Find user by email
-      const result = await db.query(
-        'SELECT id, email, password_hash FROM users WHERE email = $1',
-        [email]
-      );
+      const result = await db.query('SELECT id, email, password_hash FROM users WHERE email = $1', [
+        email,
+      ]);
 
       const user = result.rows[0];
 
@@ -78,7 +74,7 @@ export class AuthService {
 
       // Verify password
       const isPasswordValid = await verifyPassword(user.password_hash, password);
-      
+
       if (!isPasswordValid) {
         await this.logLoginEvent(user.id, ip, userAgent, false);
         throw new AuthenticationError('Invalid email or password');

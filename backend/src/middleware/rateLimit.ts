@@ -14,12 +14,15 @@ export const generalRateLimit = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   handler: (req, res) => {
-    logger.warn({
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      url: req.url,
-    }, 'Rate limit exceeded');
-    
+    logger.warn(
+      {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        url: req.url,
+      },
+      'Rate limit exceeded'
+    );
+
     res.status(429).json({
       error: {
         code: 'RATE_LIMIT_EXCEEDED',
@@ -43,12 +46,15 @@ export const authRateLimit = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
   handler: (req, res) => {
-    logger.warn({
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      url: req.url,
-    }, 'Auth rate limit exceeded');
-    
+    logger.warn(
+      {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        url: req.url,
+      },
+      'Auth rate limit exceeded'
+    );
+
     res.status(429).json({
       error: {
         code: 'AUTH_RATE_LIMIT_EXCEEDED',
@@ -71,12 +77,15 @@ export const uploadRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
-    logger.warn({
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      url: req.url,
-    }, 'Upload rate limit exceeded');
-    
+    logger.warn(
+      {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        url: req.url,
+      },
+      'Upload rate limit exceeded'
+    );
+
     res.status(429).json({
       error: {
         code: 'UPLOAD_RATE_LIMIT_EXCEEDED',

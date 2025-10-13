@@ -13,11 +13,11 @@ async function runMigrations() {
     // Read and execute the initial migration
     const migrationPath = join(__dirname, '../sql/001_init.sql');
     const migrationSQL = readFileSync(migrationPath, 'utf8');
-    
+
     logger.info('Running database migrations...');
-    
+
     await pool.query(migrationSQL);
-    
+
     logger.info('Database migrations completed successfully');
   } catch (error) {
     logger.error('Migration failed:', error);
