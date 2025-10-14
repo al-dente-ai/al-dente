@@ -64,3 +64,12 @@ ssl/*.crt
 !*.example
 !*.conf
 !nginx-docker.conf
+
+# Database backups (created by migration scripts)
+backup_*.sql
+*_backup_*.sql
+
+# Email Verification Setup Files 
+/EMAIL_VERIFICATION_IMPLEMENTATION_SUMMARY.md
+/backend/QUICK_START_EMAIL_VERIFICATION.md
+/backend/EMAIL_VERIFICATION_SETUP.md
