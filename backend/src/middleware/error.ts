@@ -39,16 +39,6 @@ export class AuthorizationError extends Error implements AppError {
   }
 }
 
-export class BadRequestError extends Error implements AppError {
-  statusCode = 400;
-  code = 'BAD_REQUEST';
-
-  constructor(message: string = 'Bad request') {
-    super(message);
-    this.name = 'BadRequestError';
-  }
-}
-
 export class NotFoundError extends Error implements AppError {
   statusCode = 404;
   code = 'NOT_FOUND';

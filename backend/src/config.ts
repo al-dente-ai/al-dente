@@ -31,15 +31,6 @@ const configSchema = z.object({
   logging: z.object({
     level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
   }),
-  email: z.object({
-    host: z.string().min(1),
-    port: z.coerce.number().min(1).max(65535),
-    secure: z.coerce.boolean().default(false),
-    user: z.string().min(1),
-    password: z.string().min(1),
-    fromAddress: z.string().email(),
-    fromName: z.string().min(1).default('Al Dente'),
-  }),
 });
 
 function validateConfig() {
@@ -69,15 +60,6 @@ function validateConfig() {
     },
     logging: {
       level: process.env.LOG_LEVEL,
-    },
-    email: {
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: process.env.EMAIL_SECURE,
-      user: process.env.EMAIL_USER,
-      password: process.env.EMAIL_PASSWORD,
-      fromAddress: process.env.EMAIL_FROM_ADDRESS,
-      fromName: process.env.EMAIL_FROM_NAME,
     },
   };
 
