@@ -28,10 +28,8 @@ export default function Dropdown({ trigger, children, align = 'right' }: Dropdow
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      <div onClick={() => setIsOpen(!isOpen)}>
-        {trigger}
-      </div>
-      
+      <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
+
       {isOpen && (
         <div
           className={`absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 ${
@@ -54,9 +52,10 @@ interface DropdownItemProps {
 }
 
 export function DropdownItem({ onClick, children, variant = 'default' }: DropdownItemProps) {
-  const colorClasses = variant === 'danger'
-    ? 'text-red-700 hover:bg-red-50 hover:text-red-800'
-    : 'text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900';
+  const colorClasses =
+    variant === 'danger'
+      ? 'text-red-700 hover:bg-red-50 hover:text-red-800'
+      : 'text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900';
 
   return (
     <button
@@ -67,4 +66,3 @@ export function DropdownItem({ onClick, children, variant = 'default' }: Dropdow
     </button>
   );
 }
-

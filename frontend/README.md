@@ -31,25 +31,29 @@ A modern React frontend for the Al Dente pantry management and AI recipe generat
 ### Installation
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Set up environment:**
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Update `.env` with your backend API URL:
+
    ```env
    VITE_API_URL=http://localhost:3000
    ```
 
 3. **Start development server:**
+
    ```bash
    npm run dev
    ```
-   
+
    The app will be available at `http://localhost:3001`
 
 ### Build for Production
@@ -80,6 +84,7 @@ The app uses Zustand for state management with the following stores:
 ### API Integration
 
 All API calls go through the configured Axios instance (`lib/api.ts`) with:
+
 - Automatic JWT token attachment
 - 401 error handling (auto-logout)
 - Error normalization
@@ -93,22 +98,26 @@ All API calls go through the configured Axios instance (`lib/api.ts`) with:
 ### Key Features
 
 #### Authentication
+
 - JWT token stored in localStorage with `app:` namespace
 - Auto-redirect on 401 responses
 - Persistent login state
 
 #### Pantry Management
+
 - CRUD operations with optimistic updates
 - Advanced search with fuzzy matching
 - Category filtering and sorting
 - Expiry date tracking with visual indicators
 
 #### AI Food Scanning
+
 - Drag & drop file upload
 - Real-time image analysis with OpenAI Vision
 - Preview and confirm before adding to inventory
 
 #### Recipe Generation
+
 - AI-powered recipe generation based on available ingredients
 - Customizable parameters (meal type, dietary preferences)
 - Recipe image generation with DALL-E

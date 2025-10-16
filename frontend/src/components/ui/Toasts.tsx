@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 
 const toastIcons = {
   success: '✅',
-  error: '❌', 
+  error: '❌',
   warning: '⚠️',
   info: 'ℹ️',
 };
@@ -35,9 +35,7 @@ export default function Toasts() {
             <span className="text-lg">{toastIcons[toast.type]}</span>
             <div className="flex-1 min-w-0">
               <p className="font-medium">{toast.title}</p>
-              {toast.message && (
-                <p className="mt-1 text-sm opacity-90">{toast.message}</p>
-              )}
+              {toast.message && <p className="mt-1 text-sm opacity-90">{toast.message}</p>}
             </div>
             <button
               onClick={() => removeToast(toast.id)}

@@ -2,14 +2,26 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useItems, toast } from '../../store';
-import { CreateItemSchema, UpdateItemSchema, type CreateItemFormData, type UpdateItemFormData } from '../../lib/validators';
+import {
+  CreateItemSchema,
+  UpdateItemSchema,
+  type CreateItemFormData,
+  type UpdateItemFormData,
+} from '../../lib/validators';
 import { formatRelativeDate, getCategoryColor, debounce } from '../../lib/utils';
 import type { Item, ItemsQuery } from '../../lib/types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/Table';
 import Spinner from '../../components/ui/Spinner';
 
 const CATEGORIES = [
@@ -24,8 +36,14 @@ const CATEGORIES = [
 ];
 
 export default function Inventory() {
-  const { items, pagination, isLoading, isSubmitting, fetchAll, create, update, remove } = useItems();
-  const [query, setQuery] = useState<ItemsQuery>({ page: 1, pageSize: 20, sort: 'expiry', order: 'asc' });
+  const { items, pagination, isLoading, isSubmitting, fetchAll, create, update, remove } =
+    useItems();
+  const [query, setQuery] = useState<ItemsQuery>({
+    page: 1,
+    pageSize: 20,
+    sort: 'expiry',
+    order: 'asc',
+  });
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -44,7 +62,10 @@ export default function Inventory() {
 
   // Load items on mount and when query changes
   useEffect(() => {
-    fetchAll({ ...query, categories: selectedCategories.length > 0 ? selectedCategories : undefined });
+    fetchAll({
+      ...query,
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+    });
   }, [query, selectedCategories, fetchAll]);
 
   // Clear selections when page changes or filters are applied
@@ -54,7 +75,7 @@ export default function Inventory() {
 
   // Debounced search
   const debouncedSearch = debounce((searchTerm: string) => {
-    setQuery(prev => ({ ...prev, q: searchTerm, page: 1 }));
+    setQuery((prev) => ({ ...prev, q: searchTerm, page: 1 }));
   }, 300);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,16 +83,14 @@ export default function Inventory() {
   };
 
   const handleCategoryFilter = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     );
-    setQuery(prev => ({ ...prev, page: 1 }));
+    setQuery((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleSort = (column: 'name' | 'expiry' | 'amount' | 'categories') => {
-    setQuery(prev => {
+    setQuery((prev) => {
       // If clicking the same column, toggle the order
       if (prev.sort === column) {
         return { ...prev, order: prev.order === 'asc' ? 'desc' : 'asc', page: 1 };
@@ -82,7 +101,7 @@ export default function Inventory() {
   };
 
   const handlePageChange = (newPage: number) => {
-    setQuery(prev => ({ ...prev, page: newPage }));
+    setQuery((prev) => ({ ...prev, page: newPage }));
   };
 
   const handleAddImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,7 +172,7 @@ export default function Inventory() {
   };
 
   const handleToggleItem = (itemId: string) => {
-    setSelectedItems(prev => {
+    setSelectedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(itemId)) {
         newSet.delete(itemId);
@@ -168,18 +187,18 @@ export default function Inventory() {
     if (selectedItems.size === items.length) {
       setSelectedItems(new Set());
     } else {
-      setSelectedItems(new Set(items.map(item => item.id)));
+      setSelectedItems(new Set(items.map((item) => item.id)));
     }
   };
 
   const handleBulkDelete = async () => {
     const count = selectedItems.size;
     if (count === 0) return;
-    
+
     if (!confirm(`Are you sure you want to delete ${count} item${count > 1 ? 's' : ''}?`)) return;
 
     try {
-      await Promise.all(Array.from(selectedItems).map(id => remove(id)));
+      await Promise.all(Array.from(selectedItems).map((id) => remove(id)));
       toast.success(`Deleted ${count} item${count > 1 ? 's' : ''}`);
       setSelectedItems(new Set());
     } catch (error) {
@@ -201,10 +220,16 @@ export default function Inventory() {
   };
 
   // Helper to render sortable column headers
-  const SortableHeader = ({ column, label }: { column: 'name' | 'expiry' | 'amount' | 'categories'; label: string }) => {
+  const SortableHeader = ({
+    column,
+    label,
+  }: {
+    column: 'name' | 'expiry' | 'amount' | 'categories';
+    label: string;
+  }) => {
     const isSorted = query.sort === column;
     const isAsc = query.order === 'asc';
-    
+
     return (
       <button
         onClick={() => handleSort(column)}
@@ -234,10 +259,9 @@ export default function Inventory() {
       <div>
         <h1 className="text-2xl font-bold text-neutral-800">Pantry Inventory</h1>
         <p className="mt-1 text-sm text-neutral-600">
-          {selectedItems.size > 0 
+          {selectedItems.size > 0
             ? `${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''} selected`
-            : 'Manage your food items and track expiry dates.'
-          }
+            : 'Manage your food items and track expiry dates.'}
         </p>
       </div>
 
@@ -245,10 +269,7 @@ export default function Inventory() {
       <Card>
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-1">
-            <Input
-              placeholder="Search items..."
-              onChange={handleSearch}
-            />
+            <Input placeholder="Search items..." onChange={handleSearch} />
           </div>
 
           {/* Category filter pills */}
@@ -281,7 +302,7 @@ export default function Inventory() {
       {/* Action buttons */}
       <div className="flex justify-end gap-2">
         {selectedItems.size > 0 && (
-          <Button 
+          <Button
             onClick={handleBulkDelete}
             variant="outline"
             className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
@@ -289,9 +310,7 @@ export default function Inventory() {
             Delete Selected ({selectedItems.size})
           </Button>
         )}
-        <Button onClick={() => setShowAddModal(true)}>
-          Add Item
-        </Button>
+        <Button onClick={() => setShowAddModal(true)}>Add Item</Button>
       </div>
 
       {/* Items Table */}
@@ -309,9 +328,7 @@ export default function Inventory() {
                 ? 'Try adjusting your filters or search term.'
                 : 'Start by adding some items to your pantry.'}
             </p>
-            <Button onClick={() => setShowAddModal(true)}>
-              Add Your First Item
-            </Button>
+            <Button onClick={() => setShowAddModal(true)}>Add Your First Item</Button>
           </div>
         ) : (
           <>
@@ -338,7 +355,9 @@ export default function Inventory() {
                   <TableHead className="hidden md:table-cell">
                     <SortableHeader column="expiry" label="Expiry" />
                   </TableHead>
-                  <TableHead><span></span></TableHead>
+                  <TableHead>
+                    <span></span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -386,11 +405,16 @@ export default function Inventory() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {item.expiry ? (
-                        <span className={`text-sm ${
-                          new Date(item.expiry) < new Date() ? 'text-red-600 font-medium' :
-                          new Date(item.expiry) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? 'text-accent-700 font-medium bg-accent-100 px-2 py-1 rounded' :
-                          'text-neutral-600'
-                        }`}>
+                        <span
+                          className={`text-sm ${
+                            new Date(item.expiry) < new Date()
+                              ? 'text-red-600 font-medium'
+                              : new Date(item.expiry) <
+                                  new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+                                ? 'text-accent-700 font-medium bg-accent-100 px-2 py-1 rounded'
+                                : 'text-neutral-600'
+                          }`}
+                        >
                           {formatRelativeDate(item.expiry)}
                         </span>
                       ) : (
@@ -427,7 +451,8 @@ export default function Inventory() {
             {pagination && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200">
                 <div className="text-sm text-neutral-700">
-                  Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total items)
+                  Showing page {pagination.page} of {pagination.totalPages} ({pagination.total}{' '}
+                  total items)
                 </div>
                 <div className="flex space-x-2">
                   <Button
@@ -488,9 +513,7 @@ export default function Inventory() {
             error={addForm.formState.errors.notes?.message}
           />
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Image
-            </label>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Image</label>
             <input
               type="file"
               accept="image/*"
@@ -508,11 +531,7 @@ export default function Inventory() {
             )}
           </div>
           <div className="flex space-x-3 pt-4">
-            <Button
-              type="submit"
-              className="flex-1"
-              isLoading={isSubmitting}
-            >
+            <Button type="submit" className="flex-1" isLoading={isSubmitting}>
               Add Item
             </Button>
             <Button
@@ -566,9 +585,7 @@ export default function Inventory() {
             error={editForm.formState.errors.notes?.message}
           />
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Image
-            </label>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Image</label>
             <input
               type="file"
               accept="image/*"
@@ -587,11 +604,7 @@ export default function Inventory() {
           </div>
           <div className="space-y-3 pt-4">
             <div className="flex space-x-3">
-              <Button
-                type="submit"
-                className="flex-1"
-                isLoading={isSubmitting}
-              >
+              <Button type="submit" className="flex-1" isLoading={isSubmitting}>
                 Update Item
               </Button>
               <Button

@@ -57,7 +57,7 @@ export const useUI = create<UIStore>()(
       if (newToast.duration && newToast.duration > 0) {
         setTimeout(() => {
           set((state) => {
-            state.toasts = state.toasts.filter(t => t.id !== id);
+            state.toasts = state.toasts.filter((t) => t.id !== id);
           });
         }, newToast.duration);
       }
@@ -65,7 +65,7 @@ export const useUI = create<UIStore>()(
 
     removeToast: (id) => {
       set((state) => {
-        state.toasts = state.toasts.filter(t => t.id !== id);
+        state.toasts = state.toasts.filter((t) => t.id !== id);
       });
     },
 
@@ -89,24 +89,24 @@ export const useUI = create<UIStore>()(
 
     closeModal: (id) => {
       set((state) => {
-        const modal = state.modals.find(m => m.id === id);
+        const modal = state.modals.find((m) => m.id === id);
         if (modal) {
           modal.isOpen = false;
           modal.onClose?.();
         }
       });
-      
+
       // Remove modal after animation
       setTimeout(() => {
         set((state) => {
-          state.modals = state.modals.filter(m => m.id !== id);
+          state.modals = state.modals.filter((m) => m.id !== id);
         });
       }, 300);
     },
 
     closeAllModals: () => {
       set((state) => {
-        state.modals.forEach(modal => modal.onClose?.());
+        state.modals.forEach((modal) => modal.onClose?.());
         state.modals = [];
       });
     },
@@ -121,12 +121,12 @@ export const useUI = create<UIStore>()(
 
 // Toast helper functions
 export const toast = {
-  success: (title: string, message?: string) => 
+  success: (title: string, message?: string) =>
     useUI.getState().addToast({ type: 'success', title, message }),
-  error: (title: string, message?: string) => 
+  error: (title: string, message?: string) =>
     useUI.getState().addToast({ type: 'error', title, message }),
-  warning: (title: string, message?: string) => 
+  warning: (title: string, message?: string) =>
     useUI.getState().addToast({ type: 'warning', title, message }),
-  info: (title: string, message?: string) => 
+  info: (title: string, message?: string) =>
     useUI.getState().addToast({ type: 'info', title, message }),
 };

@@ -28,7 +28,7 @@ export const useScan = create<ScanStore>()(
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       set((state) => {
@@ -55,7 +55,7 @@ export const useScan = create<ScanStore>()(
           predictionName: data.prediction.name,
           confidence: data.prediction.confidence,
           categories: data.prediction.categories,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         set((state) => {
@@ -69,9 +69,9 @@ export const useScan = create<ScanStore>()(
         console.error('❌ [SCAN STORE] Upload failed', {
           error: apiError.message,
           details: apiError.details,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
+
         set((state) => {
           state.isSubmitting = false;
           state.error = apiError.message;

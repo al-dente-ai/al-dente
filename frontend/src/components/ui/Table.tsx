@@ -34,38 +34,22 @@ interface TableCellProps {
 export function Table({ children, className }: TableProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200">
-      <table className={cn('min-w-full divide-y divide-gray-200', className)}>
-        {children}
-      </table>
+      <table className={cn('min-w-full divide-y divide-gray-200', className)}>{children}</table>
     </div>
   );
 }
 
 export function TableHeader({ children, className }: TableHeaderProps) {
-  return (
-    <thead className={cn('bg-gray-50', className)}>
-      {children}
-    </thead>
-  );
+  return <thead className={cn('bg-gray-50', className)}>{children}</thead>;
 }
 
 export function TableBody({ children, className }: TableBodyProps) {
-  return (
-    <tbody className={cn('divide-y divide-gray-200 bg-white', className)}>
-      {children}
-    </tbody>
-  );
+  return <tbody className={cn('divide-y divide-gray-200 bg-white', className)}>{children}</tbody>;
 }
 
 export function TableRow({ children, className, onClick }: TableRowProps) {
   return (
-    <tr 
-      className={cn(
-        onClick && 'cursor-pointer hover:bg-gray-50',
-        className
-      )}
-      onClick={onClick}
-    >
+    <tr className={cn(onClick && 'cursor-pointer hover:bg-gray-50', className)} onClick={onClick}>
       {children}
     </tr>
   );
@@ -73,10 +57,12 @@ export function TableRow({ children, className, onClick }: TableRowProps) {
 
 export function TableHead({ children, className }: TableHeadProps) {
   return (
-    <th className={cn(
-      'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-      className
-    )}>
+    <th
+      className={cn(
+        'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+        className
+      )}
+    >
       {children}
     </th>
   );

@@ -25,15 +25,15 @@ const RECIPE_COUNT_OPTIONS = Array.from({ length: 8 }, (_, i) => ({
 }));
 
 export default function Recipes() {
-  const { 
-    recipes, 
-    pagination, 
-    isLoading, 
-    isGenerating, 
-    
-    fetchAll, 
-    generate, 
-    remove 
+  const {
+    recipes,
+    pagination,
+    isLoading,
+    isGenerating,
+
+    fetchAll,
+    generate,
+    remove,
   } = useRecipes();
   const { items, fetchAll: fetchItems } = useItems();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -73,7 +73,9 @@ export default function Recipes() {
   const handleGenerateRecipes = async (data: GenerateRecipesFormData) => {
     try {
       const generatedRecipes = await generate(data);
-      toast.success(`Generated ${generatedRecipes.length} recipe${generatedRecipes.length === 1 ? '' : 's'}!`);
+      toast.success(
+        `Generated ${generatedRecipes.length} recipe${generatedRecipes.length === 1 ? '' : 's'}!`
+      );
       reset();
     } catch (error) {
       toast.error('Failed to generate recipes');
@@ -93,7 +95,8 @@ export default function Recipes() {
 
   const getRecipeStats = (recipe: Recipe) => {
     const stats = [];
-    if (recipe.servings) stats.push(`${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}`);
+    if (recipe.servings)
+      stats.push(`${recipe.servings} serving${recipe.servings === 1 ? '' : 's'}`);
     if (recipe.prep_time_minutes) {
       const hours = Math.floor(recipe.prep_time_minutes / 60);
       const minutes = recipe.prep_time_minutes % 60;
@@ -108,7 +111,7 @@ export default function Recipes() {
 
   const getUsedIngredients = (recipe: Recipe) => {
     if (!recipe.uses_item_ids || recipe.uses_item_ids.length === 0) return [];
-    return items.filter(item => recipe.uses_item_ids.includes(item.id));
+    return items.filter((item) => recipe.uses_item_ids.includes(item.id));
   };
 
   return (
@@ -238,9 +241,7 @@ export default function Recipes() {
             <div className="text-center py-8">
               <div className="text-4xl mb-4">👨‍🍳</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No recipes yet</h3>
-              <p className="text-gray-600 mb-4">
-                Generate your first recipe using the form above.
-              </p>
+              <p className="text-gray-600 mb-4">Generate your first recipe using the form above.</p>
             </div>
           </Card>
         ) : (
@@ -248,7 +249,10 @@ export default function Recipes() {
             {recipes.map((recipe) => {
               const usedIngredients = getUsedIngredients(recipe);
               return (
-                <Card key={recipe.id} className="group cursor-pointer hover:shadow-md transition-shadow">
+                <Card
+                  key={recipe.id}
+                  className="group cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <div onClick={() => setSelectedRecipe(recipe)}>
                     {recipe.image_url && (
                       <img
@@ -263,7 +267,9 @@ export default function Recipes() {
                           {recipe.title}
                         </h3>
                         {recipe.description && (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{recipe.description}</p>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            {recipe.description}
+                          </p>
                         )}
                       </div>
 
@@ -275,15 +281,14 @@ export default function Recipes() {
                       </div>
 
                       {getRecipeStats(recipe) && (
-                        <div className="text-sm text-gray-600">
-                          {getRecipeStats(recipe)}
-                        </div>
+                        <div className="text-sm text-gray-600">{getRecipeStats(recipe)}</div>
                       )}
 
                       {usedIngredients.length > 0 && (
                         <div>
                           <p className="text-xs font-medium text-green-700 mb-1">
-                            Uses {usedIngredients.length} item{usedIngredients.length === 1 ? '' : 's'} from your pantry:
+                            Uses {usedIngredients.length} item
+                            {usedIngredients.length === 1 ? '' : 's'} from your pantry:
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {usedIngredients.slice(0, 3).map((item) => (
@@ -384,7 +389,10 @@ export default function Recipes() {
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
               <ul className="space-y-2">
                 {selectedRecipe.ingredients.map((ingredient, index) => (
-                  <li key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <li
+                    key={index}
+                    className="flex justify-between items-center py-2 border-b border-gray-100"
+                  >
                     <span>{ingredient.name}</span>
                     {ingredient.quantity && (
                       <span className="text-gray-600">{ingredient.quantity}</span>
@@ -413,7 +421,10 @@ export default function Recipes() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">From Your Pantry</h3>
                 <div className="grid gap-2 md:grid-cols-2">
                   {getUsedIngredients(selectedRecipe).map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                    <div
+                      key={item.id}
+                      className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg"
+                    >
                       {item.image_url && (
                         <img
                           src={item.image_url}
@@ -423,9 +434,7 @@ export default function Recipes() {
                       )}
                       <div>
                         <div className="font-medium text-green-900">{item.name}</div>
-                        {item.amount && (
-                          <div className="text-sm text-green-700">{item.amount}</div>
-                        )}
+                        {item.amount && <div className="text-sm text-green-700">{item.amount}</div>}
                       </div>
                     </div>
                   ))}

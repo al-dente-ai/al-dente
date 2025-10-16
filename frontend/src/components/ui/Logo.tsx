@@ -8,7 +8,13 @@ type LogoProps = {
   variant?: 'color' | 'mono';
 };
 
-export default function Logo({ to = '/', size = 28, showText = true, className, variant = 'color' }: LogoProps) {
+export default function Logo({
+  to = '/',
+  size = 28,
+  showText = true,
+  className,
+  variant = 'color',
+}: LogoProps) {
   // For now, always use the colored logo, but keep the variant prop for future flexibility
   const src = variant === 'mono' ? '/aldente-logo-coloured.svg' : '/aldente-logo-coloured.svg';
   const img = (
@@ -36,5 +42,3 @@ export default function Logo({ to = '/', size = 28, showText = true, className, 
     </Link>
   );
 }
-
-

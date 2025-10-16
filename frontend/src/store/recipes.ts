@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import api from '../lib/api';
-import type { 
-  Recipe, 
-  CreateRecipeRequest, 
+import type {
+  Recipe,
+  CreateRecipeRequest,
   GenerateRecipesRequest,
   PaginationResult,
-  ApiError 
+  ApiError,
 } from '../lib/types';
 
 interface RecipesState {
@@ -58,7 +58,7 @@ export const useRecipes = create<RecipesStore>()(
         });
 
         const { data } = await api.get<PaginationResult<Recipe>>(`/recipes?${params}`);
-        
+
         set((state) => {
           state.recipes = data.data;
           state.pagination = {
@@ -89,7 +89,7 @@ export const useRecipes = create<RecipesStore>()(
 
       try {
         const { data } = await api.post<{ data: Recipe[] }>('/recipes/generate', request);
-        
+
         set((state) => {
           // Add generated recipes to the beginning of the list
           state.recipes = [...data.data, ...state.recipes];
@@ -115,7 +115,7 @@ export const useRecipes = create<RecipesStore>()(
 
       try {
         const { data } = await api.post<Recipe>('/recipes', recipeData);
-        
+
         set((state) => {
           // Add new recipe to the beginning of the list
           state.recipes.unshift(data);
@@ -135,17 +135,17 @@ export const useRecipes = create<RecipesStore>()(
 
     remove: async (id: string) => {
       const originalRecipes = get().recipes;
-      
+
       // Optimistic removal
       set((state) => {
-        state.recipes = state.recipes.filter(recipe => recipe.id !== id);
+        state.recipes = state.recipes.filter((recipe) => recipe.id !== id);
         state.isSubmitting = true;
         state.error = undefined;
       });
 
       try {
         await api.delete(`/recipes/${id}`);
-        
+
         set((state) => {
           state.isSubmitting = false;
         });
