@@ -135,8 +135,18 @@ export class AuthService {
     try {
       const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
 
-      // Find valid verification code
-      const result = await db.query(
+      // First check if ANY code exists for this phone number (to give better error messages)
+      const anyCodeResult = await db.query(
+        `SELECT id, attempts, verified, expires_at, created_at
+         FROM phone_verification_codes 
+         WHERE phone_number = $1
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [formattedPhone]
+      );
+
+      // Check if code with exact match exists and is valid
+      const validCodeResult = await db.query(
         `SELECT id, user_id, attempts, purpose 
          FROM phone_verification_codes 
          WHERE phone_number = $1 
@@ -148,23 +158,50 @@ export class AuthService {
         [formattedPhone, code]
       );
 
-      if (result.rows.length === 0) {
-        // Increment attempts if code exists but is wrong
+      // If no exact match found, give specific error message
+      if (validCodeResult.rows.length === 0) {
+        if (anyCodeResult.rows.length === 0) {
+          throw new BadRequestError('No verification code found for this phone number. Please request a new code.');
+        }
+
+        const latestCode = anyCodeResult.rows[0];
+        
+        // Check if code was already used
+        if (latestCode.verified) {
+          throw new BadRequestError('This verification code has already been used. Please request a new code if needed.');
+        }
+
+        // Check if code is expired
+        if (new Date(latestCode.expires_at) <= new Date()) {
+          throw new BadRequestError('Verification code has expired. Please request a new code.');
+        }
+
+        // Check if too many attempts
+        if (latestCode.attempts >= 5) {
+          throw new BadRequestError('Too many failed attempts. Please request a new verification code.');
+        }
+
+        // Code exists but doesn't match - increment attempts
         await db.query(
           `UPDATE phone_verification_codes 
            SET attempts = attempts + 1 
-           WHERE phone_number = $1 
-             AND verified = FALSE 
-             AND expires_at > NOW()`,
-          [formattedPhone]
+           WHERE id = $1`,
+          [latestCode.id]
         );
-        
-        throw new BadRequestError('Invalid or expired verification code');
+
+        const remainingAttempts = 5 - (latestCode.attempts + 1);
+        if (remainingAttempts > 0) {
+          throw new BadRequestError(
+            `Incorrect verification code. You have ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`
+          );
+        } else {
+          throw new BadRequestError('Incorrect verification code. Maximum attempts reached. Please request a new code.');
+        }
       }
 
-      const verification = result.rows[0];
+      const verification = validCodeResult.rows[0];
 
-      // Check attempts limit (max 5 attempts)
+      // Double-check attempts limit (should be caught above, but safety check)
       if (verification.attempts >= 5) {
         throw new BadRequestError('Too many verification attempts. Please request a new code.');
       }

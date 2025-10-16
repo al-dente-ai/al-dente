@@ -76,41 +76,112 @@ class SMSService {
   }
 
   /**
-   * Format phone number to E.164 format (if not already)
-   * This is a simple implementation - you might want to use a library like libphonenumber-js
-   * for more robust phone number parsing
+   * Validate if phone number is a valid US/Canada number
+   * Returns an object with validation result and formatted number
    */
-  formatPhoneNumber(phoneNumber: string): string {
+  validateUSCanadaPhone(phoneNumber: string): { 
+    isValid: boolean; 
+    formatted?: string; 
+    error?: string;
+  } {
     // Remove all non-digit characters
     const cleaned = phoneNumber.replace(/\D/g, '');
     
-    // If it starts with 1 (US/Canada), ensure it has the + prefix
-    if (cleaned.length === 11 && cleaned.startsWith('1')) {
-      return `+${cleaned}`;
-    }
-    
-    // If it's 10 digits, assume US/Canada and add +1
+    // Check for 10-digit US/Canada format
     if (cleaned.length === 10) {
-      return `+1${cleaned}`;
+      // Validate US/Canada number format (NPA-NXX-XXXX)
+      // NPA (area code): 2-9 for first digit
+      // NXX (exchange): 2-9 for first digit
+      const firstDigit = cleaned[0];
+      const fourthDigit = cleaned[3];
+      
+      if (firstDigit < '2' || firstDigit > '9') {
+        return {
+          isValid: false,
+          error: 'Invalid area code. US/Canada area codes start with digits 2-9.'
+        };
+      }
+      
+      if (fourthDigit < '2' || fourthDigit > '9') {
+        return {
+          isValid: false,
+          error: 'Invalid phone number format.'
+        };
+      }
+      
+      return {
+        isValid: true,
+        formatted: `+1${cleaned}`
+      };
     }
     
-    // If it already has country code
-    if (cleaned.length > 10) {
-      return `+${cleaned}`;
+    // Check for 11-digit with US/Canada country code (1)
+    if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      const nationalNumber = cleaned.substring(1);
+      const firstDigit = nationalNumber[0];
+      const fourthDigit = nationalNumber[3];
+      
+      if (firstDigit < '2' || firstDigit > '9') {
+        return {
+          isValid: false,
+          error: 'Invalid area code. US/Canada area codes start with digits 2-9.'
+        };
+      }
+      
+      if (fourthDigit < '2' || fourthDigit > '9') {
+        return {
+          isValid: false,
+          error: 'Invalid phone number format.'
+        };
+      }
+      
+      return {
+        isValid: true,
+        formatted: `+${cleaned}`
+      };
     }
     
-    // Return as-is if we can't determine format
-    return phoneNumber;
+    // Check if it might be an international number
+    if (cleaned.length > 11 || (cleaned.length === 11 && !cleaned.startsWith('1'))) {
+      return {
+        isValid: false,
+        error: 'Only US and Canada phone numbers are currently supported. Please use a +1 country code number.'
+      };
+    }
+    
+    if (cleaned.length < 10) {
+      return {
+        isValid: false,
+        error: 'Phone number is too short. Please enter a valid 10-digit US/Canada phone number.'
+      };
+    }
+    
+    return {
+      isValid: false,
+      error: 'Invalid phone number format. Please enter a valid US/Canada phone number (10 digits).'
+    };
   }
 
   /**
-   * Validate phone number format
-   * For production, consider using libphonenumber-js or similar library
+   * Format phone number to E.164 format (US/Canada only)
+   * Throws error if not a valid US/Canada number
+   */
+  formatPhoneNumber(phoneNumber: string): string {
+    const validation = this.validateUSCanadaPhone(phoneNumber);
+    
+    if (!validation.isValid) {
+      throw new Error(validation.error || 'Invalid phone number format');
+    }
+    
+    return validation.formatted!;
+  }
+
+  /**
+   * Validate phone number format (US/Canada only)
    */
   isValidPhoneNumber(phoneNumber: string): boolean {
-    // Basic validation - at least 10 digits
-    const cleaned = phoneNumber.replace(/\D/g, '');
-    return cleaned.length >= 10 && cleaned.length <= 15;
+    const validation = this.validateUSCanadaPhone(phoneNumber);
+    return validation.isValid;
   }
 }
 

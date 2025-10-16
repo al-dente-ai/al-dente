@@ -153,10 +153,11 @@ export default function PasswordReset() {
                 <Input
                   label="Phone Number"
                   type="tel"
-                  placeholder="+1234567890 or 1234567890"
+                  placeholder="(555) 123-4567"
                   autoComplete="tel"
                   {...registerReset('phoneNumber')}
                   error={resetErrors.phoneNumber?.message}
+                  helperText="US/Canada numbers only"
                   onChange={(e) => {
                     registerReset('phoneNumber').onChange(e);
                     setPhoneNumber(e.target.value);

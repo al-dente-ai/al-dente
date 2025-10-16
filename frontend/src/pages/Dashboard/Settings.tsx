@@ -188,7 +188,7 @@ export default function Settings() {
               <div className="flex gap-3">
                 <Input
                   type="tel"
-                  placeholder="+1234567890 or 1234567890"
+                  placeholder="(555) 123-4567"
                   value={newPhoneNumber}
                   onChange={(e) => setNewPhoneNumber(e.target.value)}
                   className="flex-1"
@@ -202,7 +202,7 @@ export default function Settings() {
                 </Button>
               </div>
               <p className="text-xs text-neutral-500 mt-1">
-                Enter a new phone number to receive a verification code
+                Enter a US or Canada phone number (10 digits) to receive a verification code
               </p>
             </div>
           </div>

@@ -1,14 +1,57 @@
 import { z } from 'zod';
 import validator from 'validator';
 
-// Phone number validation
+// Phone number validation - US/Canada only
 const phoneNumberSchema = z
   .string()
-  .min(10, 'Phone number must be at least 10 digits')
-  .max(15, 'Phone number is too long')
+  .min(1, 'Phone number is required')
+  .transform(val => val.trim())
   .refine(
-    (phone) => validator.isMobilePhone(phone, 'any', { strictMode: false }),
-    'Invalid phone number format'
+    (phone) => {
+      // Remove all non-digit characters
+      const cleaned = phone.replace(/\D/g, '');
+      
+      // Must be 10 digits (US/Canada without country code) or 11 digits starting with 1
+      if (cleaned.length === 10) return true;
+      if (cleaned.length === 11 && cleaned.startsWith('1')) return true;
+      return false;
+    },
+    'Please enter a valid 10-digit US or Canada phone number'
+  )
+  .refine(
+    (phone) => {
+      const cleaned = phone.replace(/\D/g, '');
+      const nationalNumber = cleaned.length === 11 ? cleaned.substring(1) : cleaned;
+      
+      // Check if it's not a US/Canada number (country code other than 1)
+      if (cleaned.length > 11 || (cleaned.length === 11 && !cleaned.startsWith('1'))) {
+        return false;
+      }
+      
+      // Validate area code (first digit must be 2-9)
+      if (nationalNumber.length === 10) {
+        const firstDigit = nationalNumber[0];
+        return firstDigit >= '2' && firstDigit <= '9';
+      }
+      
+      return true;
+    },
+    'Only US and Canada phone numbers (+1) are currently supported'
+  )
+  .refine(
+    (phone) => {
+      const cleaned = phone.replace(/\D/g, '');
+      const nationalNumber = cleaned.length === 11 ? cleaned.substring(1) : cleaned;
+      
+      // Validate exchange code (4th digit must be 2-9)
+      if (nationalNumber.length === 10) {
+        const fourthDigit = nationalNumber[3];
+        return fourthDigit >= '2' && fourthDigit <= '9';
+      }
+      
+      return true;
+    },
+    'Invalid area code or exchange. Please check your phone number'
   );
 
 // Auth schemas

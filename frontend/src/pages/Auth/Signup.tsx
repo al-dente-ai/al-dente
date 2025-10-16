@@ -141,10 +141,10 @@ export default function Signup() {
               label="Phone Number"
               type="tel"
               autoComplete="tel"
-              placeholder="+1234567890 or 1234567890"
+              placeholder="(555) 123-4567"
               {...register('phoneNumber')}
               error={errors.phoneNumber?.message}
-              helperText="Required for account verification and password recovery."
+              helperText="US/Canada numbers only. Required for account verification and password recovery."
             />
 
             <Input
