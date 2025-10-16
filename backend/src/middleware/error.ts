@@ -19,6 +19,16 @@ export class ValidationError extends Error implements AppError {
   }
 }
 
+export class BadRequestError extends Error implements AppError {
+  statusCode = 400;
+  code = 'BAD_REQUEST';
+
+  constructor(message: string = 'Bad request') {
+    super(message);
+    this.name = 'BadRequestError';
+  }
+}
+
 export class AuthenticationError extends Error implements AppError {
   statusCode = 401;
   code = 'AUTHENTICATION_ERROR';

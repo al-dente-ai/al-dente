@@ -1,4 +1,15 @@
 import { z } from 'zod';
+import validator from 'validator';
+
+// Phone number validation
+const phoneNumberSchema = z
+  .string()
+  .min(10, 'Phone number must be at least 10 digits')
+  .max(15, 'Phone number is too long')
+  .refine(
+    (phone) => validator.isMobilePhone(phone, 'any', { strictMode: false }),
+    'Invalid phone number format'
+  );
 
 // Auth schemas
 export const LoginSchema = z.object({
@@ -10,7 +21,27 @@ export const SignupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
+  phoneNumber: phoneNumberSchema,
 }).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export const VerifyPhoneSchema = z.object({
+  phoneNumber: phoneNumberSchema,
+  code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+});
+
+export const RequestPasswordResetSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+});
+
+export const ResetPasswordSchema = z.object({
+  phoneNumber: phoneNumberSchema,
+  code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
@@ -109,6 +140,9 @@ export const CreateRecipeSchema = z.object({
 // Export type inferences
 export type LoginFormData = z.infer<typeof LoginSchema>;
 export type SignupFormData = z.infer<typeof SignupSchema>;
+export type VerifyPhoneFormData = z.infer<typeof VerifyPhoneSchema>;
+export type RequestPasswordResetFormData = z.infer<typeof RequestPasswordResetSchema>;
+export type ResetPasswordFormData = z.infer<typeof ResetPasswordSchema>;
 export type CreateItemFormData = z.infer<typeof CreateItemSchema>;
 export type UpdateItemFormData = z.infer<typeof UpdateItemSchema>;
 export type GenerateRecipesFormData = z.infer<typeof GenerateRecipesSchema>;

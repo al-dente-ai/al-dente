@@ -89,6 +89,15 @@ export default function Login() {
               error={errors.password?.message}
             />
 
+            <div className="flex items-center justify-end">
+              <Link
+                to="/reset-password"
+                className="text-sm font-medium text-primary-500 hover:text-primary-600"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               className="w-full"

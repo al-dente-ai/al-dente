@@ -110,10 +110,10 @@ app.get('/health', async (_req, res) => {
 });
 
 // API routes
-app.use('/auth', authRouter);
-app.use('/items', itemsRouter);
-app.use('/recipes', recipesRouter);
-app.use('/scan', scanRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/items', itemsRouter);
+app.use('/api/recipes', recipesRouter);
+app.use('/api/scan', scanRouter);
 
 /**
  * @swagger
@@ -137,25 +137,29 @@ app.get('/api', (_req, res) => {
     version: '1.0.0',
     endpoints: {
       auth: {
-        'POST /auth/signup': 'Create new user account',
-        'POST /auth/login': 'Authenticate user',
+        'POST /api/auth/signup': 'Create new user account',
+        'POST /api/auth/login': 'Authenticate user',
+        'POST /api/auth/verify-phone': 'Verify phone number',
+        'POST /api/auth/send-verification-code': 'Send verification code',
+        'POST /api/auth/request-password-reset': 'Request password reset',
+        'POST /api/auth/reset-password': 'Reset password with SMS code',
       },
       items: {
-        'GET /items': 'List pantry items with pagination and search',
-        'POST /items': 'Create new pantry item',
-        'GET /items/:id': 'Get specific pantry item',
-        'PUT /items/:id': 'Update pantry item',
-        'DELETE /items/:id': 'Delete pantry item',
+        'GET /api/items': 'List pantry items with pagination and search',
+        'POST /api/items': 'Create new pantry item',
+        'GET /api/items/:id': 'Get specific pantry item',
+        'PUT /api/items/:id': 'Update pantry item',
+        'DELETE /api/items/:id': 'Delete pantry item',
       },
       recipes: {
-        'GET /recipes': 'List user recipes with pagination',
-        'POST /recipes/generate': 'Generate AI recipes using pantry items',
-        'POST /recipes': 'Create custom recipe',
-        'GET /recipes/:id': 'Get specific recipe',
-        'DELETE /recipes/:id': 'Delete recipe',
+        'GET /api/recipes': 'List user recipes with pagination',
+        'POST /api/recipes/generate': 'Generate AI recipes using pantry items',
+        'POST /api/recipes': 'Create custom recipe',
+        'GET /api/recipes/:id': 'Get specific recipe',
+        'DELETE /api/recipes/:id': 'Delete recipe',
       },
       scan: {
-        'POST /scan/upload': 'Upload and analyze food image',
+        'POST /api/scan/upload': 'Upload and analyze food image',
       },
       utility: {
         'GET /health': 'Service health check',

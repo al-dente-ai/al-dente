@@ -153,4 +153,5 @@ export interface LoginRequest {
 export interface SignupRequest {
   email: string;
   password: string;
+  phoneNumber: string;
 }
