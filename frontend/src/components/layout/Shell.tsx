@@ -38,14 +38,18 @@ export default function Shell() {
   return (
     <div className="h-screen flex bg-neutral-50">
       {/* Sidebar */}
-      <div className={cn(
-        "hidden md:flex md:flex-col transition-all duration-300 ease-in-out overflow-hidden",
-        sidebarOpen ? "md:w-64" : "md:w-0"
-      )}>
-        <div className={cn(
-          "flex flex-col flex-grow border-r border-neutral-200 bg-white overflow-y-auto transition-opacity duration-300 w-64 flex-shrink-0",
-          sidebarOpen ? "opacity-100" : "opacity-0"
-        )}>
+      <div
+        className={cn(
+          'hidden md:flex md:flex-col transition-all duration-300 ease-in-out overflow-hidden',
+          sidebarOpen ? 'md:w-64' : 'md:w-0'
+        )}
+      >
+        <div
+          className={cn(
+            'flex flex-col flex-grow border-r border-neutral-200 bg-white overflow-y-auto transition-opacity duration-300 w-64 flex-shrink-0',
+            sidebarOpen ? 'opacity-100' : 'opacity-0'
+          )}
+        >
           {/* Logo */}
           <div className="flex items-center justify-center flex-shrink-0 px-4 py-4 border-b border-gray-200">
             <Logo size={28} variant="mono" showText={false} to="" />
@@ -89,9 +93,7 @@ export default function Shell() {
                 className={({ isActive }) =>
                   cn(
                     'flex flex-col items-center py-2 px-3 text-xs font-medium rounded transition-colors',
-                    isActive
-                      ? 'text-primary-600'
-                      : 'text-neutral-600'
+                    isActive ? 'text-primary-600' : 'text-neutral-600'
                   )
                 }
               >

@@ -14,7 +14,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -42,11 +42,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-      />
-      
+      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
@@ -69,7 +66,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
               </button>
             </div>
           )}
-          
+
           {/* Content */}
           <div className={cn('p-6', !title && 'pt-8')}>
             {!title && (

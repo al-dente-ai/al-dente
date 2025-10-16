@@ -1,6 +1,9 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { config } from './config';
 import { logger } from './logger';
+import * as schema from '../drizzle/schema';
+import * as relations from '../drizzle/relations';
 
 class Database {
   private pool: Pool;
@@ -76,3 +79,16 @@ class Database {
 
 export const db = new Database();
 export { Database };
+
+// Drizzle ORM client with schema - use this for new codepaths
+const drizzlePool = new Pool({
+  connectionString: config.database.url,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+export const drizzleDb = drizzle(drizzlePool, { schema: { ...schema, ...relations } });
+
+// Export schema tables for easy access
+export * from '../drizzle/schema';

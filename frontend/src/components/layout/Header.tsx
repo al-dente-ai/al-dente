@@ -9,7 +9,11 @@ interface HeaderProps {
   showSidebarToggle?: boolean;
 }
 
-export default function Header({ variant = 'transparent', onToggleSidebar, showSidebarToggle = false }: HeaderProps) {
+export default function Header({
+  variant = 'transparent',
+  onToggleSidebar,
+  showSidebarToggle = false,
+}: HeaderProps) {
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
   const { logout } = useAuth();
@@ -40,14 +44,14 @@ export default function Header({ variant = 'transparent', onToggleSidebar, showS
     if (variant === 'solid') {
       return 'bg-white border-b border-neutral-200 shadow-sm';
     }
-    
-    return isScrolled 
-      ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200/50 shadow-sm' 
+
+    return isScrolled
+      ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200/50 shadow-sm'
       : 'bg-transparent';
   };
 
   return (
-    <header 
+    <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${getHeaderClasses()}`}
     >
       <div className="relative">
@@ -59,7 +63,12 @@ export default function Header({ variant = 'transparent', onToggleSidebar, showS
             aria-label="Toggle sidebar"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
         )}
@@ -67,45 +76,38 @@ export default function Header({ variant = 'transparent', onToggleSidebar, showS
         {/* Main Navigation - Centered with max-width */}
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           {/* Left side: Logo and Site Name */}
-          <Logo to="/" size={32} variant="mono" showText={true} className="hover:opacity-80 transition-opacity" />
+          <Logo
+            to="/"
+            size={32}
+            variant="mono"
+            showText={true}
+            className="hover:opacity-80 transition-opacity"
+          />
 
           {/* Right side: Navigation */}
           <div className="flex items-center space-x-4">
-          {isAuthenticated ? (
-            <>
-              <Link
-                to="/app"
-                className="btn btn-secondary"
-              >
-                Dashboard
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="btn btn-outline"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="btn btn-secondary"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="btn btn-primary"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
+            {isAuthenticated ? (
+              <>
+                <Link to="/app" className="btn btn-secondary">
+                  Dashboard
+                </Link>
+                <button onClick={handleLogout} className="btn btn-outline">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-secondary">
+                  Sign In
+                </Link>
+                <Link to="/signup" className="btn btn-primary">
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
       </div>
     </header>
   );
 }
-

@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { drizzleDb, users, loginEvents } from '../db';
 import { logger } from '../logger';
 import { hashPassword, verifyPassword } from '../utils/passwords';
 import { generateToken } from '../middleware/auth';
@@ -12,6 +12,7 @@ import {
   ChangePhoneNumberRequest
 } from '../schemas/auth';
 import { smsService } from '../utils/sms';
+import { eq } from 'drizzle-orm';
 
 export interface User {
   id: string;
@@ -40,10 +41,12 @@ export class AuthService {
       // Format phone number
       const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
 
-      // Check if user already exists with this email
-      const existingUser = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+      // Check if user already exists
+      const existingUser = await drizzleDb.select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email));
 
-      if (existingUser.rows.length > 0) {
+      if (existingUser.length > 0) {
         throw new ConflictError('User with this email already exists');
       }
 
@@ -61,14 +64,19 @@ export class AuthService {
       const passwordHash = await hashPassword(password);
 
       // Create user
-      const result = await db.query(
-        `INSERT INTO users (email, password_hash, phone_number, phone_verified) 
-         VALUES ($1, $2, $3, $4) 
-         RETURNING id, email, phone_number, phone_verified, created_at, updated_at`,
-        [email, passwordHash, formattedPhone, false]
-      );
+      const result = await drizzleDb.insert(users)
+        .values({
+          email,
+          passwordHash,
+        })
+        .returning({
+          id: users.id,
+          email: users.email,
+          created_at: users.createdAt,
+          updated_at: users.updatedAt,
+        });
 
-      const user = result.rows[0] as User;
+      const user = result[0] as User;
 
       // Send verification code
       await this.sendVerificationCode(formattedPhone, 'signup', user.id);
@@ -372,11 +380,15 @@ export class AuthService {
 
     try {
       // Find user by email
-      const result = await db.query('SELECT id, email, password_hash FROM users WHERE email = $1', [
-        email,
-      ]);
+      const result = await drizzleDb.select({
+        id: users.id,
+        email: users.email,
+        password_hash: users.passwordHash,
+      })
+        .from(users)
+        .where(eq(users.email, email));
 
-      const user = result.rows[0];
+      const user = result[0];
 
       if (!user) {
         await this.logLoginEvent(null, ip, userAgent, false);
@@ -411,12 +423,18 @@ export class AuthService {
 
   async getUserById(userId: string): Promise<User | null> {
     try {
-      const result = await db.query(
-        'SELECT id, email, phone_number, phone_verified, created_at, updated_at FROM users WHERE id = $1',
-        [userId]
-      );
+      const result = await drizzleDb.select({
+        id: users.id,
+        email: users.email,
+        phone_number: user.phoneNumber,
+        phone_verified: user.phoneVerified,
+        created_at: users.createdAt,
+        updated_at: users.updatedAt,
+      })
+        .from(users)
+        .where(eq(users.id, userId));
 
-      return result.rows[0] || null;
+      return result[0] || null;
     } catch (error) {
       logger.error('Failed to fetch user', error);
       throw new Error('Failed to fetch user');
@@ -475,11 +493,16 @@ export class AuthService {
     success: boolean = false
   ): Promise<void> {
     try {
-      await db.query(
-        `INSERT INTO login_events (user_id, ip, user_agent, success) 
-         VALUES ($1, $2, $3, $4)`,
-        [userId, ip, userAgent, success]
-      );
+      // Only log if we have a userId (schema requires it to be non-null)
+      if (userId) {
+        await drizzleDb.insert(loginEvents)
+          .values({
+            userId,
+            ip,
+            userAgent,
+            success,
+          });
+      }
     } catch (error) {
       logger.error('Failed to log login event', error);
       // Don't throw error here as it's not critical for the login flow

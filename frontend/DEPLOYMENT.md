@@ -1,6 +1,7 @@
 # 🚀 Al Dente Frontend Deployment Guide
 
 ## Prerequisites
+
 - Domain configured in Cloudflare
 - Home server with Ubuntu/Debian/CentOS
 - SSH access to your server
@@ -11,6 +12,7 @@
 ### Option 1: Direct Nginx/Apache Deployment
 
 #### 1. Server Setup
+
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -23,6 +25,7 @@ sudo apt install apache2 -y
 ```
 
 #### 2. Deploy Files
+
 ```bash
 # Create directory
 sudo mkdir -p /var/www/aldente
@@ -37,6 +40,7 @@ sudo chmod -R 755 /var/www/aldente
 ```
 
 #### 3. Configure Web Server
+
 ```bash
 # For Nginx
 sudo cp nginx.conf /etc/nginx/sites-available/aldente
@@ -53,6 +57,7 @@ sudo systemctl restart apache2
 ### Option 2: Docker Deployment
 
 #### 1. Build and Run
+
 ```bash
 # Build the image
 docker build -t aldente-frontend .
@@ -67,6 +72,7 @@ docker run -d --name aldente-frontend -p 8080:80 aldente-frontend
 ## ☁️ Cloudflare Configuration
 
 ### 1. DNS Settings
+
 ```
 Type: A
 Name: @ (or www)
@@ -76,15 +82,17 @@ TTL: Auto
 ```
 
 ### 2. SSL/TLS Settings
+
 - **SSL/TLS encryption mode**: Full (strict) or Full
 - **Always Use HTTPS**: ON
 - **HTTP Strict Transport Security (HSTS)**: ON
 
 ### 3. Speed Settings
+
 ```
 Auto Minify:
 - JavaScript: ✅
-- CSS: ✅  
+- CSS: ✅
 - HTML: ✅
 
 Brotli: ✅
@@ -92,9 +100,11 @@ Rocket Loader: ✅ (test first)
 ```
 
 ### 4. Caching Rules
+
 Create Page Rules for optimal caching:
 
 **Rule 1: Static Assets**
+
 ```
 URL: yourdomain.com/assets/*
 Settings:
@@ -104,6 +114,7 @@ Settings:
 ```
 
 **Rule 2: HTML Files**
+
 ```
 URL: yourdomain.com/*.html
 Settings:
@@ -113,6 +124,7 @@ Settings:
 ```
 
 **Rule 3: API Routes** (if proxying backend)
+
 ```
 URL: yourdomain.com/api/*
 Settings:
@@ -120,6 +132,7 @@ Settings:
 ```
 
 ### 5. Security Settings
+
 ```
 Security Level: Medium
 Bot Fight Mode: ON
@@ -135,6 +148,7 @@ Firewall Rules:
 ## 🔧 Environment Variables
 
 Create `.env.production`:
+
 ```env
 VITE_API_URL=https://api.yourdomain.com
 # or if using same domain: https://yourdomain.com/api
@@ -143,17 +157,20 @@ VITE_API_URL=https://api.yourdomain.com
 ## 📋 Deployment Checklist
 
 ### Before Deployment
+
 - [ ] Update `.env.production` with correct API URL
 - [ ] Run `npm run build` to create production build
 - [ ] Test build locally with `npm run preview`
 
-### Server Configuration  
+### Server Configuration
+
 - [ ] Web server configured (nginx/apache)
 - [ ] SSL certificates installed (or using Cloudflare SSL)
 - [ ] Firewall configured (allow ports 80, 443, SSH)
 - [ ] Domain pointed to server IP
 
 ### Cloudflare Setup
+
 - [ ] DNS A record pointing to server
 - [ ] Proxy enabled (orange cloud)
 - [ ] SSL/TLS set to Full or Full (strict)
@@ -161,6 +178,7 @@ VITE_API_URL=https://api.yourdomain.com
 - [ ] Security settings configured
 
 ### Testing
+
 - [ ] Site loads at your domain
 - [ ] All routes work (test React Router)
 - [ ] API calls work correctly
@@ -172,12 +190,14 @@ VITE_API_URL=https://api.yourdomain.com
 ## 🔄 Updates & Maintenance
 
 ### Quick Update Process
+
 1. Run `npm run build` locally
 2. Use deployment script: `.\deploy.ps1`
 3. Or manually upload dist folder
 4. Purge Cloudflare cache if needed
 
 ### Monitoring
+
 - Monitor server resources (CPU, RAM, disk)
 - Check Cloudflare analytics
 - Monitor SSL certificate expiry
@@ -188,20 +208,24 @@ VITE_API_URL=https://api.yourdomain.com
 ### Common Issues
 
 **React Router 404s**
+
 - Ensure SPA fallback is configured
 - Check nginx/apache rewrite rules
 
 **API Connection Issues**
+
 - Verify VITE_API_URL in production build
 - Check CORS settings on backend
 - Verify firewall/security groups
 
 **Cloudflare Issues**
+
 - Try "Development Mode" to bypass cache
 - Check SSL/TLS encryption mode
 - Review firewall rules
 
 **Performance Issues**
+
 - Enable gzip/brotli compression
 - Optimize Cloudflare caching rules
 - Consider CDN for large assets
@@ -209,6 +233,7 @@ VITE_API_URL=https://api.yourdomain.com
 ## 📞 Support
 
 If you encounter issues:
+
 1. Check server logs: `sudo tail -f /var/log/nginx/error.log`
 2. Check Cloudflare dashboard for errors
 3. Test with Cloudflare development mode

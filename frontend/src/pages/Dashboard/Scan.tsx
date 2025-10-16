@@ -20,7 +20,7 @@ export default function Scan() {
       fileName: file.name,
       fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
       fileType: file.type,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     if (!file.type.startsWith('image/')) {
@@ -30,7 +30,10 @@ export default function Scan() {
     }
 
     if (file.size > 16 * 1024 * 1024) {
-      console.warn('⚠️ [SCAN COMPONENT] File too large rejected', `${(file.size / 1024 / 1024).toFixed(2)}MB`);
+      console.warn(
+        '⚠️ [SCAN COMPONENT] File too large rejected',
+        `${(file.size / 1024 / 1024).toFixed(2)}MB`
+      );
       toast.error('File size must be less than 16MB');
       return;
     }
@@ -42,7 +45,7 @@ export default function Scan() {
       const result = await uploadImage(file);
       console.log('🎉 [SCAN COMPONENT] Upload successful, showing preview modal', {
         resultImageUrl: result.image_url,
-        predictionName: result.prediction.name
+        predictionName: result.prediction.name,
       });
       setShowPreview(true);
     } catch (error) {
@@ -55,17 +58,21 @@ export default function Scan() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Reset drag state
     setDragActive(false);
     setDragCounter(0);
-    
+
     console.log('📂 [SCAN COMPONENT] Files dropped', {
       fileCount: e.dataTransfer.files.length,
-      files: Array.from(e.dataTransfer.files).map(f => ({ name: f.name, type: f.type, size: f.size })),
-      timestamp: new Date().toISOString()
+      files: Array.from(e.dataTransfer.files).map((f) => ({
+        name: f.name,
+        type: f.type,
+        size: f.size,
+      })),
+      timestamp: new Date().toISOString(),
     });
-    
+
     const files = Array.from(e.dataTransfer.files);
     if (files[0]) {
       console.log('✅ [SCAN COMPONENT] Processing dropped file', files[0].name);
@@ -78,21 +85,21 @@ export default function Scan() {
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Check if files are being dragged
     const hasFiles = e.dataTransfer.types.includes('Files');
-    
-    setDragCounter(prevCounter => {
+
+    setDragCounter((prevCounter) => {
       const newCounter = prevCounter + 1;
       console.log('🔄 [SCAN COMPONENT] Drag enter detected', {
         hasFiles,
         dragCounter: newCounter,
         dataTransferTypes: Array.from(e.dataTransfer.types),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       return newCounter;
     });
-    
+
     if (hasFiles) {
       setDragActive(true);
     }
@@ -101,15 +108,15 @@ export default function Scan() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Check if files are being dragged over
     const hasFiles = e.dataTransfer.types.includes('Files');
-    
+
     // Only log occasionally to avoid spam
     if (Math.random() < 0.01) {
       console.log('📋 [SCAN COMPONENT] Drag over active', { hasFiles });
     }
-    
+
     // Ensure drag active state is maintained for file drags
     if (hasFiles && !dragActive) {
       setDragActive(true);
@@ -119,20 +126,20 @@ export default function Scan() {
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    setDragCounter(prevCounter => {
+
+    setDragCounter((prevCounter) => {
       const newCounter = prevCounter - 1;
       console.log('🚪 [SCAN COMPONENT] Drag leave detected', {
         dragCounter: newCounter,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
+
       // Only deactivate drag when counter reaches 0 (completely left the drop zone)
       if (newCounter === 0) {
         console.log('🚪 [SCAN COMPONENT] Leaving drop zone completely - deactivating drag');
         setDragActive(false);
       }
-      
+
       return Math.max(0, newCounter); // Prevent negative counter
     });
   };
@@ -161,7 +168,7 @@ export default function Scan() {
 
     console.log('📦 [SCAN COMPONENT] Adding item to inventory', {
       itemData,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     try {
@@ -194,9 +201,7 @@ export default function Scan() {
         <div
           ref={dropZoneRef}
           className={`border-2 border-dashed rounded-xl p-12 transition-colors ${
-            dragActive 
-              ? 'border-blue-400 bg-blue-50' 
-              : 'border-gray-300 hover:border-gray-400'
+            dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
           }`}
           onDrop={handleDrop}
           onDragEnter={handleDragEnter}
@@ -204,13 +209,11 @@ export default function Scan() {
           onDragLeave={handleDragLeave}
         >
           <div className="text-6xl mb-4">📸</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Upload Food Image
-          </h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Food Image</h3>
           <p className="text-gray-600 mb-6">
             Drag and drop an image here, or click to select a file
           </p>
-          
+
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={isSubmitting}
@@ -219,7 +222,7 @@ export default function Scan() {
           >
             {isSubmitting ? 'Analyzing...' : 'Choose File'}
           </Button>
-          
+
           <input
             ref={fileInputRef}
             type="file"
@@ -227,10 +230,8 @@ export default function Scan() {
             onChange={handleFileInput}
             className="hidden"
           />
-          
-          <p className="text-xs text-gray-500 mt-4">
-            Supports PNG, JPEG, JPG, WebP (max 16MB)
-          </p>
+
+          <p className="text-xs text-gray-500 mt-4">Supports PNG, JPEG, JPG, WebP (max 16MB)</p>
         </div>
       </Card>
 
@@ -241,7 +242,9 @@ export default function Scan() {
           <div className="text-center">
             <div className="text-3xl mb-2">📷</div>
             <h3 className="font-medium text-gray-900">1. Upload</h3>
-            <p className="text-sm text-gray-600">Take a photo or upload an image of your food items</p>
+            <p className="text-sm text-gray-600">
+              Take a photo or upload an image of your food items
+            </p>
           </div>
           <div className="text-center">
             <div className="text-3xl mb-2">🤖</div>
@@ -277,7 +280,8 @@ export default function Scan() {
             {/* AI Prediction */}
             <div className="bg-blue-50 rounded-lg p-4">
               <h3 className="font-medium text-blue-900 mb-2">
-                AI Prediction (Confidence: {Math.round(lastScanResult.prediction.confidence * 100)}%)
+                AI Prediction (Confidence: {Math.round(lastScanResult.prediction.confidence * 100)}
+                %)
               </h3>
               <div className="grid gap-3 md:grid-cols-2 text-sm">
                 <div>
@@ -293,12 +297,16 @@ export default function Scan() {
                 {lastScanResult.prediction.expiry && (
                   <div>
                     <span className="font-medium text-gray-700">Expiry:</span>
-                    <span className="ml-2 text-gray-900">{formatDate(lastScanResult.prediction.expiry)}</span>
+                    <span className="ml-2 text-gray-900">
+                      {formatDate(lastScanResult.prediction.expiry)}
+                    </span>
                   </div>
                 )}
                 <div>
                   <span className="font-medium text-gray-700">Categories:</span>
-                  <span className="ml-2 text-gray-900">{lastScanResult.prediction.categories.join(', ')}</span>
+                  <span className="ml-2 text-gray-900">
+                    {lastScanResult.prediction.categories.join(', ')}
+                  </span>
                 </div>
                 {lastScanResult.prediction.notes && (
                   <div className="md:col-span-2">
@@ -311,17 +319,10 @@ export default function Scan() {
 
             {/* Actions */}
             <div className="flex space-x-3">
-              <Button
-                onClick={handleAddToInventory}
-                className="flex-1"
-              >
+              <Button onClick={handleAddToInventory} className="flex-1">
                 Add to Inventory
               </Button>
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={handleCancel} className="flex-1">
                 Cancel
               </Button>
             </div>

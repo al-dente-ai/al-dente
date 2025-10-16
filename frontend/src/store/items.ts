@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import api from '../lib/api';
-import type { 
-  Item, 
-  CreateItemRequest, 
-  UpdateItemRequest, 
-  ItemsQuery, 
+import type {
+  Item,
+  CreateItemRequest,
+  UpdateItemRequest,
+  ItemsQuery,
   PaginationResult,
-  ApiError 
+  ApiError,
 } from '../lib/types';
 
 interface ItemsState {
@@ -62,7 +62,7 @@ export const useItems = create<ItemsStore>()(
         if (query.order) params.append('order', query.order);
 
         const { data } = await api.get<PaginationResult<Item>>(`/items?${params}`);
-        
+
         set((state) => {
           state.items = data.data;
           state.pagination = {
@@ -95,7 +95,7 @@ export const useItems = create<ItemsStore>()(
       try {
         console.log('Creating item:', itemData);
         const { data } = await api.post<Item>('/items', itemData);
-        
+
         set((state) => {
           // Optimistically add to the beginning of the list
           state.items.unshift(data);
@@ -115,8 +115,8 @@ export const useItems = create<ItemsStore>()(
 
     update: async (id: string, updates: UpdateItemRequest) => {
       const originalItems = get().items;
-      const itemIndex = originalItems.findIndex(item => item.id === id);
-      
+      const itemIndex = originalItems.findIndex((item) => item.id === id);
+
       if (itemIndex === -1) {
         throw new Error('Item not found');
       }
@@ -133,10 +133,10 @@ export const useItems = create<ItemsStore>()(
 
       try {
         const { data } = await api.put<Item>(`/items/${id}`, updates);
-        
+
         set((state) => {
           // Update with server response
-          const index = state.items.findIndex(item => item.id === id);
+          const index = state.items.findIndex((item) => item.id === id);
           if (index !== -1) {
             state.items[index] = data;
           }
@@ -157,17 +157,17 @@ export const useItems = create<ItemsStore>()(
 
     remove: async (id: string) => {
       const originalItems = get().items;
-      
+
       // Optimistic removal
       set((state) => {
-        state.items = state.items.filter(item => item.id !== id);
+        state.items = state.items.filter((item) => item.id !== id);
         state.isSubmitting = true;
         state.error = undefined;
       });
 
       try {
         await api.delete(`/items/${id}`);
-        
+
         set((state) => {
           state.isSubmitting = false;
         });
