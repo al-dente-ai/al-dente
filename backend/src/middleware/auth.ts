@@ -75,3 +75,6 @@ export function generateToken(userId: string, email: string): string {
     }
   );
 }
+
+// Alias for better naming in routes
+export const requireAuth = authenticate;

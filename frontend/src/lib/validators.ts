@@ -46,6 +46,11 @@ export const ResetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+export const ChangePhoneSchema = z.object({
+  newPhoneNumber: phoneNumberSchema,
+  code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+});
+
 // Item schemas
 export const CreateItemSchema = z.object({
   name: z.string().min(1, 'Item name is required').max(255, 'Name is too long'),
@@ -143,6 +148,7 @@ export type SignupFormData = z.infer<typeof SignupSchema>;
 export type VerifyPhoneFormData = z.infer<typeof VerifyPhoneSchema>;
 export type RequestPasswordResetFormData = z.infer<typeof RequestPasswordResetSchema>;
 export type ResetPasswordFormData = z.infer<typeof ResetPasswordSchema>;
+export type ChangePhoneFormData = z.infer<typeof ChangePhoneSchema>;
 export type CreateItemFormData = z.infer<typeof CreateItemSchema>;
 export type UpdateItemFormData = z.infer<typeof UpdateItemSchema>;
 export type GenerateRecipesFormData = z.infer<typeof GenerateRecipesSchema>;

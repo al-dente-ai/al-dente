@@ -42,9 +42,15 @@ export const resetPasswordSchema = z.object({
   newPassword: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
+export const changePhoneNumberSchema = z.object({
+  newPhoneNumber: phoneNumberSchema,
+  code: z.string().length(6, 'Verification code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+});
+
 export type SignupRequest = z.infer<typeof signupSchema>;
 export type VerifyPhoneRequest = z.infer<typeof verifyPhoneSchema>;
 export type SendVerificationCodeRequest = z.infer<typeof sendVerificationCodeSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
 export type RequestPasswordResetRequest = z.infer<typeof requestPasswordResetSchema>;
 export type ResetPasswordRequest = z.infer<typeof resetPasswordSchema>;
+export type ChangePhoneNumberRequest = z.infer<typeof changePhoneNumberSchema>;

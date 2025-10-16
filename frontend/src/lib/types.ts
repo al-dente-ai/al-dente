@@ -3,6 +3,10 @@
 export interface User {
   id: string;
   email: string;
+  phoneNumber?: string;
+  phoneVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Item {

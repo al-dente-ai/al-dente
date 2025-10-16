@@ -2,13 +2,15 @@ import { Router } from 'express';
 import { authService } from '../services/authService';
 import { validateBody } from '../middleware/validate';
 import { authRateLimit } from '../middleware/rateLimit';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { 
   signupSchema, 
   loginSchema, 
   verifyPhoneSchema,
   sendVerificationCodeSchema,
   requestPasswordResetSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  changePhoneNumberSchema
 } from '../schemas/auth';
 
 const router = Router();
@@ -285,6 +287,107 @@ router.post('/reset-password', validateBody(resetPasswordSchema), async (req, re
     res.status(200).json({
       success: result.success,
       message: 'Password reset successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current user profile
+ *     description: Get the authenticated user's profile information
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 phoneNumber:
+ *                   type: string
+ *                 phoneVerified:
+ *                   type: boolean
+ *                 createdAt:
+ *                   type: string
+ *                 updatedAt:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/me', requireAuth, async (req, res, next) => {
+  try {
+    const authenticatedReq = req as AuthenticatedRequest;
+    const user = await authService.getUserById(authenticatedReq.user.id);
+    
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    res.status(200).json({
+      id: user.id,
+      email: user.email,
+      phoneNumber: user.phone_number,
+      phoneVerified: user.phone_verified,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /auth/change-phone:
+ *   post:
+ *     summary: Change phone number
+ *     description: Change the authenticated user's phone number with verification code
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newPhoneNumber
+ *               - code
+ *             properties:
+ *               newPhoneNumber:
+ *                 type: string
+ *                 example: "+12345678900"
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Phone number changed successfully
+ *       400:
+ *         description: Invalid code or validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/change-phone', requireAuth, validateBody(changePhoneNumberSchema), async (req, res, next) => {
+  try {
+    const authenticatedReq = req as AuthenticatedRequest;
+    const result = await authService.changePhoneNumber(authenticatedReq.user.id, req.body);
+    res.status(200).json({
+      success: result.success,
+      message: 'Phone number changed successfully'
     });
   } catch (error) {
     next(error);

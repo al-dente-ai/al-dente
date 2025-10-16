@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import('../pages/Dashboard/index'));
 const Scan = lazy(() => import('../pages/Dashboard/Scan'));
 const Inventory = lazy(() => import('../pages/Dashboard/Inventory'));
 const Recipes = lazy(() => import('../pages/Dashboard/Recipes'));
+const Settings = lazy(() => import('../pages/Dashboard/Settings'));
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
           {
             path: 'recipes',
             element: <Recipes />,
+          },
+          {
+            path: 'settings',
+            element: <Settings />,
           },
         ],
       },

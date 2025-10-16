@@ -8,7 +8,8 @@ import {
   LoginRequest, 
   VerifyPhoneRequest,
   RequestPasswordResetRequest,
-  ResetPasswordRequest 
+  ResetPasswordRequest,
+  ChangePhoneNumberRequest
 } from '../schemas/auth';
 import { smsService } from '../utils/sms';
 
@@ -325,6 +326,50 @@ export class AuthService {
     } catch (error) {
       logger.error('Failed to fetch user', error);
       throw new Error('Failed to fetch user');
+    }
+  }
+
+  /**
+   * Change user's phone number with verification
+   */
+  async changePhoneNumber(userId: string, data: ChangePhoneNumberRequest): Promise<{ success: boolean }> {
+    const { newPhoneNumber, code } = data;
+
+    try {
+      const formattedPhone = smsService.formatPhoneNumber(newPhoneNumber);
+
+      // Verify the code for this new phone number
+      const verification = await this.verifyPhone({ phoneNumber: formattedPhone, code });
+
+      if (!verification.success) {
+        throw new BadRequestError('Invalid verification code');
+      }
+
+      // Check phone number usage limit (max 5 users per phone)
+      const phoneUsageCount = await db.query(
+        'SELECT COUNT(*) as count FROM users WHERE phone_number = $1 AND id != $2',
+        [formattedPhone, userId]
+      );
+
+      if (parseInt(phoneUsageCount.rows[0].count) >= 5) {
+        throw new BadRequestError('This phone number has reached the maximum number of associated accounts');
+      }
+
+      // Update user's phone number and mark as verified
+      await db.query(
+        'UPDATE users SET phone_number = $1, phone_verified = TRUE, updated_at = NOW() WHERE id = $2',
+        [formattedPhone, userId]
+      );
+
+      logger.info({ userId, newPhoneNumber: formattedPhone }, 'Phone number changed successfully');
+
+      return { success: true };
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      logger.error({ userId, newPhoneNumber, error }, 'Phone number change failed');
+      throw new Error('Failed to change phone number');
     }
   }
 
