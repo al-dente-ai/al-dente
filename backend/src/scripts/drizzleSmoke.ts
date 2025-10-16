@@ -1,5 +1,5 @@
 import { drizzleDb } from '../db';
-import { items } from '../../drizzle/schema';
+import { items } from '../db/schema';
 import { desc, eq } from 'drizzle-orm';
 
 async function main() {

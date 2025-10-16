@@ -11,13 +11,18 @@ class SMSService {
 
   constructor() {
     // Check if Twilio config is available
-    if (!config.twilio || !config.twilio.accountSid || !config.twilio.authToken || !config.twilio.phoneNumber) {
+    if (
+      !config.twilio ||
+      !config.twilio.accountSid ||
+      !config.twilio.authToken ||
+      !config.twilio.phoneNumber
+    ) {
       logger.warn('Twilio configuration not found. SMS service will not be available.');
       return;
     }
 
     this.fromNumber = config.twilio.phoneNumber;
-    
+
     try {
       this.client = twilio(config.twilio.accountSid, config.twilio.authToken);
       logger.info('SMS service initialized successfully');
@@ -79,14 +84,14 @@ class SMSService {
    * Validate if phone number is a valid US/Canada number
    * Returns an object with validation result and formatted number
    */
-  validateUSCanadaPhone(phoneNumber: string): { 
-    isValid: boolean; 
-    formatted?: string; 
+  validateUSCanadaPhone(phoneNumber: string): {
+    isValid: boolean;
+    formatted?: string;
     error?: string;
   } {
     // Remove all non-digit characters
     const cleaned = phoneNumber.replace(/\D/g, '');
-    
+
     // Check for 10-digit US/Canada format
     if (cleaned.length === 10) {
       // Validate US/Canada number format (NPA-NXX-XXXX)
@@ -94,71 +99,73 @@ class SMSService {
       // NXX (exchange): 2-9 for first digit
       const firstDigit = cleaned[0];
       const fourthDigit = cleaned[3];
-      
+
       if (firstDigit < '2' || firstDigit > '9') {
         return {
           isValid: false,
-          error: 'Invalid area code. US/Canada area codes start with digits 2-9.'
+          error: 'Invalid area code. US/Canada area codes start with digits 2-9.',
         };
       }
-      
+
       if (fourthDigit < '2' || fourthDigit > '9') {
         return {
           isValid: false,
-          error: 'Invalid phone number format.'
+          error: 'Invalid phone number format.',
         };
       }
-      
+
       return {
         isValid: true,
-        formatted: `+1${cleaned}`
+        formatted: `+1${cleaned}`,
       };
     }
-    
+
     // Check for 11-digit with US/Canada country code (1)
     if (cleaned.length === 11 && cleaned.startsWith('1')) {
       const nationalNumber = cleaned.substring(1);
       const firstDigit = nationalNumber[0];
       const fourthDigit = nationalNumber[3];
-      
+
       if (firstDigit < '2' || firstDigit > '9') {
         return {
           isValid: false,
-          error: 'Invalid area code. US/Canada area codes start with digits 2-9.'
+          error: 'Invalid area code. US/Canada area codes start with digits 2-9.',
         };
       }
-      
+
       if (fourthDigit < '2' || fourthDigit > '9') {
         return {
           isValid: false,
-          error: 'Invalid phone number format.'
+          error: 'Invalid phone number format.',
         };
       }
-      
+
       return {
         isValid: true,
-        formatted: `+${cleaned}`
+        formatted: `+${cleaned}`,
       };
     }
-    
+
     // Check if it might be an international number
     if (cleaned.length > 11 || (cleaned.length === 11 && !cleaned.startsWith('1'))) {
       return {
         isValid: false,
-        error: 'Only US and Canada phone numbers are currently supported. Please use a +1 country code number.'
+        error:
+          'Only US and Canada phone numbers are currently supported. Please use a +1 country code number.',
       };
     }
-    
+
     if (cleaned.length < 10) {
       return {
         isValid: false,
-        error: 'Phone number is too short. Please enter a valid 10-digit US/Canada phone number.'
+        error: 'Phone number is too short. Please enter a valid 10-digit US/Canada phone number.',
       };
     }
-    
+
     return {
       isValid: false,
-      error: 'Invalid phone number format. Please enter a valid US/Canada phone number (10 digits).'
+      error:
+        'Invalid phone number format. Please enter a valid US/Canada phone number (10 digits).',
     };
   }
 
@@ -168,11 +175,11 @@ class SMSService {
    */
   formatPhoneNumber(phoneNumber: string): string {
     const validation = this.validateUSCanadaPhone(phoneNumber);
-    
+
     if (!validation.isValid) {
       throw new Error(validation.error || 'Invalid phone number format');
     }
-    
+
     return validation.formatted!;
   }
 
@@ -187,4 +194,3 @@ class SMSService {
 
 export const smsService = new SMSService();
 export { SMSService };
-

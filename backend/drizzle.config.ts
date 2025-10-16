@@ -13,9 +13,9 @@ if (!databaseUrl) {
 export default defineConfig({
   dialect: 'postgresql',
   // Where your TypeScript schema lives (introspection will generate here)
-  schema: './drizzle/schema.ts',
+  schema: './src/db/schema.ts',
   // Where SQL migrations will be placed if/when you use `drizzle-kit generate`
-  out: './drizzle',
+  out: './src/db',
   dbCredentials: {
     url: databaseUrl,
   },

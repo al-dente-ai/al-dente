@@ -182,7 +182,8 @@ export class RecipesService {
         timestamp: new Date().toISOString(),
       });
 
-      const result = await drizzleDb.insert(recipes)
+      const result = await drizzleDb
+        .insert(recipes)
         .values({
           userId,
           title,
@@ -258,7 +259,7 @@ export class RecipesService {
         .select({ count: count() })
         .from(recipes)
         .where(eq(recipes.userId, userId));
-      
+
       const total = countResult[0].count;
 
       // Get recipes
@@ -281,7 +282,8 @@ export class RecipesService {
 
   async getRecipeById(userId: string, recipeId: string): Promise<Recipe> {
     try {
-      const result = await drizzleDb.select()
+      const result = await drizzleDb
+        .select()
         .from(recipes)
         .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId)));
 
@@ -302,7 +304,8 @@ export class RecipesService {
 
   async deleteRecipe(userId: string, recipeId: string): Promise<void> {
     try {
-      const result = await drizzleDb.delete(recipes)
+      const result = await drizzleDb
+        .delete(recipes)
         .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId)))
         .returning({ id: recipes.id });
 

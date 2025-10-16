@@ -3,14 +3,14 @@ import { authService } from '../services/authService';
 import { validateBody } from '../middleware/validate';
 import { authRateLimit } from '../middleware/rateLimit';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
-import { 
-  signupSchema, 
-  loginSchema, 
+import {
+  signupSchema,
+  loginSchema,
   verifyPhoneSchema,
   sendVerificationCodeSchema,
   requestPasswordResetSchema,
   resetPasswordSchema,
-  changePhoneNumberSchema
+  changePhoneNumberSchema,
 } from '../schemas/auth';
 
 const router = Router();
@@ -164,7 +164,7 @@ router.post('/verify-phone', validateBody(verifyPhoneSchema), async (req, res, n
     const result = await authService.verifyPhone(req.body, 'signup');
     res.status(200).json({
       success: result.success,
-      message: 'Phone number verified successfully'
+      message: 'Phone number verified successfully',
     });
   } catch (error) {
     next(error);
@@ -200,18 +200,22 @@ router.post('/verify-phone', validateBody(verifyPhoneSchema), async (req, res, n
  *       429:
  *         description: Rate limit exceeded
  */
-router.post('/send-verification-code', validateBody(sendVerificationCodeSchema), async (req, res, next) => {
-  try {
-    const { phoneNumber, purpose } = req.body;
-    await authService.sendVerificationCode(phoneNumber, purpose);
-    res.status(200).json({
-      success: true,
-      message: 'Verification code sent successfully'
-    });
-  } catch (error) {
-    next(error);
+router.post(
+  '/send-verification-code',
+  validateBody(sendVerificationCodeSchema),
+  async (req, res, next) => {
+    try {
+      const { phoneNumber, purpose } = req.body;
+      await authService.sendVerificationCode(phoneNumber, purpose);
+      res.status(200).json({
+        success: true,
+        message: 'Verification code sent successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -238,18 +242,23 @@ router.post('/send-verification-code', validateBody(sendVerificationCodeSchema),
  *       400:
  *         description: No verified phone number
  */
-router.post('/request-password-reset', validateBody(requestPasswordResetSchema), async (req, res, next) => {
-  try {
-    const result = await authService.requestPasswordReset(req.body);
-    res.status(200).json({
-      success: true,
-      message: 'If an account exists with this email and has a verified phone number, a verification code has been sent.',
-      maskedPhone: result.maskedPhone
-    });
-  } catch (error) {
-    next(error);
+router.post(
+  '/request-password-reset',
+  validateBody(requestPasswordResetSchema),
+  async (req, res, next) => {
+    try {
+      const result = await authService.requestPasswordReset(req.body);
+      res.status(200).json({
+        success: true,
+        message:
+          'If an account exists with this email and has a verified phone number, a verification code has been sent.',
+        maskedPhone: result.maskedPhone,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -289,7 +298,7 @@ router.post('/reset-password', validateBody(resetPasswordSchema), async (req, re
     const result = await authService.resetPassword(req.body);
     res.status(200).json({
       success: result.success,
-      message: 'Password reset successfully'
+      message: 'Password reset successfully',
     });
   } catch (error) {
     next(error);
@@ -332,7 +341,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const authenticatedReq = req as AuthenticatedRequest;
     const user = await authService.getUserById(authenticatedReq.user.id);
-    
+
     if (!user) {
       res.status(404).json({ message: 'User not found' });
       return;
@@ -384,17 +393,22 @@ router.get('/me', requireAuth, async (req, res, next) => {
  *       401:
  *         description: Unauthorized
  */
-router.post('/change-phone', requireAuth, validateBody(changePhoneNumberSchema), async (req, res, next) => {
-  try {
-    const authenticatedReq = req as AuthenticatedRequest;
-    const result = await authService.changePhoneNumber(authenticatedReq.user.id, req.body);
-    res.status(200).json({
-      success: result.success,
-      message: 'Phone number changed successfully'
-    });
-  } catch (error) {
-    next(error);
+router.post(
+  '/change-phone',
+  requireAuth,
+  validateBody(changePhoneNumberSchema),
+  async (req, res, next) => {
+    try {
+      const authenticatedReq = req as AuthenticatedRequest;
+      const result = await authService.changePhoneNumber(authenticatedReq.user.id, req.body);
+      res.status(200).json({
+        success: result.success,
+        message: 'Phone number changed successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 export { router as authRouter };

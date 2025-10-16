@@ -3,13 +3,13 @@ import { logger } from '../logger';
 import { hashPassword, verifyPassword } from '../utils/passwords';
 import { generateToken } from '../middleware/auth';
 import { ConflictError, AuthenticationError, BadRequestError } from '../middleware/error';
-import { 
-  SignupRequest, 
-  LoginRequest, 
+import {
+  SignupRequest,
+  LoginRequest,
   VerifyPhoneRequest,
   RequestPasswordResetRequest,
   ResetPasswordRequest,
-  ChangePhoneNumberRequest
+  ChangePhoneNumberRequest,
 } from '../schemas/auth';
 import { smsService } from '../utils/sms';
 import { eq } from 'drizzle-orm';
@@ -42,7 +42,8 @@ export class AuthService {
       const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
 
       // Check if user already exists
-      const existingUser = await drizzleDb.select({ id: users.id })
+      const existingUser = await drizzleDb
+        .select({ id: users.id })
         .from(users)
         .where(eq(users.email, email));
 
@@ -57,14 +58,17 @@ export class AuthService {
       );
 
       if (parseInt(phoneUsageCount.rows[0].count) >= 5) {
-        throw new BadRequestError('This phone number has reached the maximum number of associated accounts');
+        throw new BadRequestError(
+          'This phone number has reached the maximum number of associated accounts'
+        );
       }
 
       // Hash password
       const passwordHash = await hashPassword(password);
 
       // Create user
-      const result = await drizzleDb.insert(users)
+      const result = await drizzleDb
+        .insert(users)
         .values({
           email,
           passwordHash,
@@ -88,12 +92,15 @@ export class AuthService {
       // Generate JWT token
       const token = generateToken(user.id, user.email);
 
-      logger.info({ userId: user.id, email: user.email }, 'User created successfully, verification code sent');
+      logger.info(
+        { userId: user.id, email: user.email },
+        'User created successfully, verification code sent'
+      );
 
-      return { 
+      return {
         token,
         phoneVerified: false,
-        requiresPhoneVerification: true 
+        requiresPhoneVerification: true,
       };
     } catch (error) {
       if (error instanceof ConflictError || error instanceof BadRequestError) {
@@ -114,10 +121,10 @@ export class AuthService {
   ): Promise<void> {
     try {
       const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
-      
+
       // Generate verification code
       const code = smsService.generateVerificationCode();
-      
+
       // Set expiration to 10 minutes from now
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -144,11 +151,11 @@ export class AuthService {
    * @param expectedPurpose - Optional purpose to validate against (for security)
    */
   async verifyPhone(
-    data: VerifyPhoneRequest, 
+    data: VerifyPhoneRequest,
     expectedPurpose?: 'signup' | 'password_reset' | 'phone_change'
   ): Promise<{ success: boolean; userId?: string }> {
     const { phoneNumber, code } = data;
-    
+
     try {
       const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
 
@@ -170,15 +177,15 @@ export class AuthService {
           AND code = $2 
           AND verified = FALSE 
           AND expires_at > NOW()`;
-      
+
       const queryParams: any[] = [formattedPhone, code];
-      
+
       // Add purpose filter if specified (for security)
       if (expectedPurpose) {
         validCodeQuery += ` AND purpose = $3`;
         queryParams.push(expectedPurpose);
       }
-      
+
       validCodeQuery += ` ORDER BY created_at DESC LIMIT 1`;
 
       // Check if code with exact match exists and is valid
@@ -187,14 +194,18 @@ export class AuthService {
       // If no exact match found, give specific error message
       if (validCodeResult.rows.length === 0) {
         if (anyCodeResult.rows.length === 0) {
-          throw new BadRequestError('No verification code found for this phone number. Please request a new code.');
+          throw new BadRequestError(
+            'No verification code found for this phone number. Please request a new code.'
+          );
         }
 
         const latestCode = anyCodeResult.rows[0];
-        
+
         // Check if code was already used
         if (latestCode.verified) {
-          throw new BadRequestError('This verification code has already been used. Please request a new code if needed.');
+          throw new BadRequestError(
+            'This verification code has already been used. Please request a new code if needed.'
+          );
         }
 
         // Check if code is expired
@@ -204,12 +215,16 @@ export class AuthService {
 
         // Check if too many attempts
         if (latestCode.attempts >= 5) {
-          throw new BadRequestError('Too many failed attempts. Please request a new verification code.');
+          throw new BadRequestError(
+            'Too many failed attempts. Please request a new verification code.'
+          );
         }
 
         // Check if purpose mismatch (if we're enforcing purpose)
         if (expectedPurpose && latestCode.purpose !== expectedPurpose) {
-          throw new BadRequestError('This verification code cannot be used for this purpose. Please request a new code.');
+          throw new BadRequestError(
+            'This verification code cannot be used for this purpose. Please request a new code.'
+          );
         }
 
         // Code exists but doesn't match - increment attempts
@@ -226,7 +241,9 @@ export class AuthService {
             `Incorrect verification code. You have ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`
           );
         } else {
-          throw new BadRequestError('Incorrect verification code. Maximum attempts reached. Please request a new code.');
+          throw new BadRequestError(
+            'Incorrect verification code. Maximum attempts reached. Please request a new code.'
+          );
         }
       }
 
@@ -238,22 +255,27 @@ export class AuthService {
       }
 
       // Mark verification as complete
-      await db.query(
-        'UPDATE phone_verification_codes SET verified = TRUE WHERE id = $1',
-        [verification.id]
-      );
+      await db.query('UPDATE phone_verification_codes SET verified = TRUE WHERE id = $1', [
+        verification.id,
+      ]);
 
       // Update user's phone_verified status only for signup and phone_change purposes
       // (password_reset doesn't need to update this as it requires already verified phone)
-      if (verification.user_id && (verification.purpose === 'signup' || verification.purpose === 'phone_change')) {
-        await db.query(
-          'UPDATE users SET phone_verified = TRUE WHERE id = $1',
-          [verification.user_id]
-        );
+      if (
+        verification.user_id &&
+        (verification.purpose === 'signup' || verification.purpose === 'phone_change')
+      ) {
+        await db.query('UPDATE users SET phone_verified = TRUE WHERE id = $1', [
+          verification.user_id,
+        ]);
       }
 
       logger.info(
-        { phoneNumber: formattedPhone, userId: verification.user_id, purpose: verification.purpose },
+        {
+          phoneNumber: formattedPhone,
+          userId: verification.user_id,
+          purpose: verification.purpose,
+        },
         'Phone verified successfully'
       );
 
@@ -305,7 +327,9 @@ export class AuthService {
       const user = result.rows[0];
 
       if (!user.phone_number || !user.phone_verified) {
-        throw new BadRequestError('No verified phone number associated with this account. Please contact support.');
+        throw new BadRequestError(
+          'No verified phone number associated with this account. Please contact support.'
+        );
       }
 
       // Send verification code
@@ -349,10 +373,13 @@ export class AuthService {
 
       // Verify the code using the phone number associated with this email
       // IMPORTANT: Pass 'password_reset' to ensure only password reset codes can be used
-      const verification = await this.verifyPhone({ 
-        phoneNumber: user.phone_number, 
-        code 
-      }, 'password_reset');
+      const verification = await this.verifyPhone(
+        {
+          phoneNumber: user.phone_number,
+          code,
+        },
+        'password_reset'
+      );
 
       if (!verification.success) {
         throw new BadRequestError('Invalid verification code');
@@ -362,10 +389,10 @@ export class AuthService {
       const passwordHash = await hashPassword(newPassword);
 
       // Update user's password
-      await db.query(
-        'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-        [passwordHash, user.id]
-      );
+      await db.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [
+        passwordHash,
+        user.id,
+      ]);
 
       logger.info({ userId: user.id }, 'Password reset successfully');
 
@@ -384,11 +411,12 @@ export class AuthService {
 
     try {
       // Find user by email
-      const result = await drizzleDb.select({
-        id: users.id,
-        email: users.email,
-        password_hash: users.passwordHash,
-      })
+      const result = await drizzleDb
+        .select({
+          id: users.id,
+          email: users.email,
+          password_hash: users.passwordHash,
+        })
         .from(users)
         .where(eq(users.email, email));
 
@@ -427,14 +455,15 @@ export class AuthService {
 
   async getUserById(userId: string): Promise<User | null> {
     try {
-      const result = await drizzleDb.select({
-        id: users.id,
-        email: users.email,
-        phone_number: users.phoneNumber,
-        phone_verified: users.phoneVerified,
-        created_at: users.createdAt,
-        updated_at: users.updatedAt,
-      })
+      const result = await drizzleDb
+        .select({
+          id: users.id,
+          email: users.email,
+          phone_number: users.phoneNumber,
+          phone_verified: users.phoneVerified,
+          created_at: users.createdAt,
+          updated_at: users.updatedAt,
+        })
         .from(users)
         .where(eq(users.id, userId));
 
@@ -456,7 +485,10 @@ export class AuthService {
   /**
    * Change user's phone number with verification
    */
-  async changePhoneNumber(userId: string, data: ChangePhoneNumberRequest): Promise<{ success: boolean }> {
+  async changePhoneNumber(
+    userId: string,
+    data: ChangePhoneNumberRequest
+  ): Promise<{ success: boolean }> {
     const { newPhoneNumber, code } = data;
 
     try {
@@ -464,7 +496,10 @@ export class AuthService {
 
       // Verify the code for this new phone number
       // IMPORTANT: Pass 'phone_change' to ensure only phone change codes can be used
-      const verification = await this.verifyPhone({ phoneNumber: formattedPhone, code }, 'phone_change');
+      const verification = await this.verifyPhone(
+        { phoneNumber: formattedPhone, code },
+        'phone_change'
+      );
 
       if (!verification.success) {
         throw new BadRequestError('Invalid verification code');
@@ -477,7 +512,9 @@ export class AuthService {
       );
 
       if (parseInt(phoneUsageCount.rows[0].count) >= 5) {
-        throw new BadRequestError('This phone number has reached the maximum number of associated accounts');
+        throw new BadRequestError(
+          'This phone number has reached the maximum number of associated accounts'
+        );
       }
 
       // Update user's phone number and mark as verified
@@ -507,13 +544,12 @@ export class AuthService {
     try {
       // Only log if we have a userId (schema requires it to be non-null)
       if (userId) {
-        await drizzleDb.insert(loginEvents)
-          .values({
-            userId,
-            ip,
-            userAgent,
-            success,
-          });
+        await drizzleDb.insert(loginEvents).values({
+          userId,
+          ip,
+          userAgent,
+          success,
+        });
       }
     } catch (error) {
       logger.error('Failed to log login event', error);

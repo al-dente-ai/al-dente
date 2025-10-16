@@ -31,11 +31,13 @@ const configSchema = z.object({
   logging: z.object({
     level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
   }),
-  twilio: z.object({
-    accountSid: z.string().min(1).optional(),
-    authToken: z.string().min(1).optional(),
-    phoneNumber: z.string().min(1).optional(),
-  }).optional(),
+  twilio: z
+    .object({
+      accountSid: z.string().min(1).optional(),
+      authToken: z.string().min(1).optional(),
+      phoneNumber: z.string().min(1).optional(),
+    })
+    .optional(),
 });
 
 function validateConfig() {

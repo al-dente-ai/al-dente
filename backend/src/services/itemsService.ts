@@ -39,7 +39,8 @@ export class ItemsService {
     try {
       const { name, amount, expiry, categories, notes, image_url } = data;
 
-      const result = await drizzleDb.insert(items)
+      const result = await drizzleDb
+        .insert(items)
         .values({
           userId,
           name,
@@ -68,7 +69,7 @@ export class ItemsService {
 
       // Build where conditions
       let whereConditions = [eq(items.userId, userId)];
-      
+
       // Search functionality using PostgreSQL features
       if (q) {
         whereConditions.push(
@@ -99,17 +100,17 @@ export class ItemsService {
       } else if (sort === 'categories') {
         // Sort by first category alphabetically using PostgreSQL array_to_string
         const sortDirection = order === 'asc' ? 'ASC' : 'DESC';
-        orderBy = [sql`array_to_string(${items.categories}, ',') ${sql.raw(sortDirection)}`, desc(items.createdAt)];
+        orderBy = [
+          sql`array_to_string(${items.categories}, ',') ${sql.raw(sortDirection)}`,
+          desc(items.createdAt),
+        ];
       } else {
         orderBy = [desc(items.createdAt)];
       }
 
       // Get total count
-      const countResult = await drizzleDb
-        .select({ count: count() })
-        .from(items)
-        .where(whereClause);
-      
+      const countResult = await drizzleDb.select({ count: count() }).from(items).where(whereClause);
+
       const total = countResult[0].count;
 
       // Get items with pagination
@@ -132,7 +133,8 @@ export class ItemsService {
 
   async getItemById(userId: string, itemId: string): Promise<Item> {
     try {
-      const result = await drizzleDb.select()
+      const result = await drizzleDb
+        .select()
         .from(items)
         .where(and(eq(items.id, itemId), eq(items.userId, userId)));
 
@@ -158,22 +160,24 @@ export class ItemsService {
 
       // Build dynamic update object for Drizzle
       const updateData: any = {};
-      
+
       if (data.name !== undefined) updateData.name = data.name;
       if (data.amount !== undefined) updateData.amount = data.amount;
       if (data.expiry !== undefined) updateData.expiry = data.expiry;
       if (data.categories !== undefined) updateData.categories = data.categories;
       if (data.notes !== undefined) updateData.notes = data.notes;
       if (data.image_url !== undefined) updateData.imageUrl = data.image_url;
-      
+
       // Always update the updated_at field
       updateData.updatedAt = new Date().toISOString();
 
-      if (Object.keys(updateData).length === 1) { // Only updatedAt
+      if (Object.keys(updateData).length === 1) {
+        // Only updatedAt
         throw new Error('No fields to update');
       }
 
-      const result = await drizzleDb.update(items)
+      const result = await drizzleDb
+        .update(items)
         .set(updateData)
         .where(and(eq(items.id, itemId), eq(items.userId, userId)))
         .returning();
@@ -193,7 +197,8 @@ export class ItemsService {
 
   async deleteItem(userId: string, itemId: string): Promise<void> {
     try {
-      const result = await drizzleDb.delete(items)
+      const result = await drizzleDb
+        .delete(items)
         .where(and(eq(items.id, itemId), eq(items.userId, userId)))
         .returning({ id: items.id });
 
@@ -213,7 +218,8 @@ export class ItemsService {
 
   async getUserItems(userId: string): Promise<Item[]> {
     try {
-      const result = await drizzleDb.select()
+      const result = await drizzleDb
+        .select()
         .from(items)
         .where(eq(items.userId, userId))
         .orderBy(desc(items.createdAt));

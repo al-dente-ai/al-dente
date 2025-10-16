@@ -15,7 +15,7 @@ async function runMigrations() {
     // Get all migration files from the sql directory
     // Use the source directory since SQL files aren't copied to dist
     const sqlDir = join(__dirname, '../../src/sql');
-    
+
     let files: string[];
     try {
       files = readdirSync(sqlDir)
@@ -40,7 +40,10 @@ async function runMigrations() {
         await pool.query(migrationSQL);
         logger.info(`Completed migration: ${file}`);
       } catch (fileError: any) {
-        logger.error({ file, error: fileError, message: fileError.message, detail: fileError.detail }, `Migration ${file} failed`);
+        logger.error(
+          { file, error: fileError, message: fileError.message, detail: fileError.detail },
+          `Migration ${file} failed`
+        );
         throw fileError;
       }
     }
