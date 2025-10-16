@@ -35,10 +35,12 @@ api.interceptors.response.use(
     }
 
     // Normalize error format
+    // Backend returns errors in format: { error: { code, message, details } }
+    const errorData = error?.response?.data?.error || {};
     const apiError: ApiError = {
-      message: error?.response?.data?.message || error?.message || 'An unexpected error occurred',
-      code: error?.response?.data?.code,
-      details: error?.response?.data,
+      message: errorData.message || error?.message || 'An unexpected error occurred',
+      code: errorData.code,
+      details: errorData.details || error?.response?.data,
     };
 
     return Promise.reject(apiError);

@@ -80,7 +80,7 @@ export const RequestPasswordResetSchema = z.object({
 });
 
 export const ResetPasswordSchema = z.object({
-  phoneNumber: phoneNumberSchema,
+  email: z.string().email('Please enter a valid email address'),
   code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
   newPassword: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),

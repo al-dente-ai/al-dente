@@ -19,7 +19,7 @@ export default function PasswordReset() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'request' | 'reset'>('request');
   const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [maskedPhone, setMaskedPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -42,11 +42,22 @@ export default function PasswordReset() {
   const onRequestSubmit = async (data: RequestPasswordResetFormData) => {
     setIsLoading(true);
     try {
-      await api.post('/auth/request-password-reset', { email: data.email });
+      const response = await api.post<{ success: boolean; message: string; maskedPhone?: string }>(
+        '/auth/request-password-reset', 
+        { email: data.email }
+      );
       
       setEmail(data.email);
-      setStep('reset');
-      toast.success('If an account exists with this email and has a verified phone, a code has been sent.');
+      setValue('email', data.email); // Pre-fill email in reset form
+      
+      if (response.data.maskedPhone) {
+        setMaskedPhone(response.data.maskedPhone);
+        setStep('reset');
+        toast.success(`Verification code sent to ${response.data.maskedPhone}`);
+      } else {
+        // User not found or no phone - don't reveal this for security
+        toast.success('If an account exists with this email and has a verified phone, a code has been sent.');
+      }
     } catch (error: any) {
       toast.error(error?.message || 'Failed to request password reset.');
     } finally {
@@ -58,7 +69,7 @@ export default function PasswordReset() {
     setIsLoading(true);
     try {
       await api.post('/auth/reset-password', {
-        phoneNumber: data.phoneNumber,
+        email: data.email,
         code: data.code,
         newPassword: data.newPassword,
       });
@@ -73,18 +84,25 @@ export default function PasswordReset() {
   };
 
   const handleResendCode = async () => {
-    if (!phoneNumber) {
-      toast.error('Please enter your phone number first.');
+    if (!email) {
+      toast.error('Session expired. Please start over.');
+      setStep('request');
       return;
     }
 
     setIsLoading(true);
     try {
-      await api.post('/auth/send-verification-code', {
-        phoneNumber,
-        purpose: 'password_reset',
-      });
-      toast.success('Verification code sent!');
+      const response = await api.post<{ success: boolean; message: string; maskedPhone?: string }>(
+        '/auth/request-password-reset',
+        { email }
+      );
+      
+      if (response.data.maskedPhone) {
+        setMaskedPhone(response.data.maskedPhone);
+        toast.success(`Verification code resent to ${response.data.maskedPhone}`);
+      } else {
+        toast.success('Verification code sent!');
+      }
     } catch (error: any) {
       toast.error(error?.message || 'Failed to send code.');
     } finally {
@@ -146,23 +164,14 @@ export default function PasswordReset() {
               <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-6">
                 <div className="space-y-2">
                   <p className="text-sm text-neutral-600">
-                    A verification code has been sent to your phone number. Enter it below along with your new password.
+                    A verification code has been sent to{' '}
+                    <strong>{maskedPhone || 'your registered phone number'}</strong>.
+                    Enter it below along with your new password.
                   </p>
                 </div>
 
-                <Input
-                  label="Phone Number"
-                  type="tel"
-                  placeholder="(555) 123-4567"
-                  autoComplete="tel"
-                  {...registerReset('phoneNumber')}
-                  error={resetErrors.phoneNumber?.message}
-                  helperText="US/Canada numbers only"
-                  onChange={(e) => {
-                    registerReset('phoneNumber').onChange(e);
-                    setPhoneNumber(e.target.value);
-                  }}
-                />
+                {/* Hidden email field - pre-filled from first step */}
+                <input type="hidden" {...registerReset('email')} />
 
                 <Input
                   label="Verification Code"
@@ -204,7 +213,7 @@ export default function PasswordReset() {
                     type="button"
                     variant="secondary"
                     onClick={handleResendCode}
-                    disabled={isLoading || !phoneNumber}
+                    disabled={isLoading}
                   >
                     Resend Code
                   </Button>

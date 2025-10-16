@@ -128,8 +128,13 @@ export class AuthService {
 
   /**
    * Verify a phone number with a verification code
+   * @param data - Phone number and code to verify
+   * @param expectedPurpose - Optional purpose to validate against (for security)
    */
-  async verifyPhone(data: VerifyPhoneRequest): Promise<{ success: boolean; userId?: string }> {
+  async verifyPhone(
+    data: VerifyPhoneRequest, 
+    expectedPurpose?: 'signup' | 'password_reset' | 'phone_change'
+  ): Promise<{ success: boolean; userId?: string }> {
     const { phoneNumber, code } = data;
     
     try {
@@ -137,7 +142,7 @@ export class AuthService {
 
       // First check if ANY code exists for this phone number (to give better error messages)
       const anyCodeResult = await db.query(
-        `SELECT id, attempts, verified, expires_at, created_at
+        `SELECT id, attempts, verified, expires_at, created_at, purpose
          FROM phone_verification_codes 
          WHERE phone_number = $1
          ORDER BY created_at DESC
@@ -145,18 +150,27 @@ export class AuthService {
         [formattedPhone]
       );
 
+      // Build query with optional purpose filter
+      let validCodeQuery = `
+        SELECT id, user_id, attempts, purpose 
+        FROM phone_verification_codes 
+        WHERE phone_number = $1 
+          AND code = $2 
+          AND verified = FALSE 
+          AND expires_at > NOW()`;
+      
+      const queryParams: any[] = [formattedPhone, code];
+      
+      // Add purpose filter if specified (for security)
+      if (expectedPurpose) {
+        validCodeQuery += ` AND purpose = $3`;
+        queryParams.push(expectedPurpose);
+      }
+      
+      validCodeQuery += ` ORDER BY created_at DESC LIMIT 1`;
+
       // Check if code with exact match exists and is valid
-      const validCodeResult = await db.query(
-        `SELECT id, user_id, attempts, purpose 
-         FROM phone_verification_codes 
-         WHERE phone_number = $1 
-           AND code = $2 
-           AND verified = FALSE 
-           AND expires_at > NOW()
-         ORDER BY created_at DESC
-         LIMIT 1`,
-        [formattedPhone, code]
-      );
+      const validCodeResult = await db.query(validCodeQuery, queryParams);
 
       // If no exact match found, give specific error message
       if (validCodeResult.rows.length === 0) {
@@ -179,6 +193,11 @@ export class AuthService {
         // Check if too many attempts
         if (latestCode.attempts >= 5) {
           throw new BadRequestError('Too many failed attempts. Please request a new verification code.');
+        }
+
+        // Check if purpose mismatch (if we're enforcing purpose)
+        if (expectedPurpose && latestCode.purpose !== expectedPurpose) {
+          throw new BadRequestError('This verification code cannot be used for this purpose. Please request a new code.');
         }
 
         // Code exists but doesn't match - increment attempts
@@ -212,8 +231,9 @@ export class AuthService {
         [verification.id]
       );
 
-      // If this was for a signup, update user's phone_verified status
-      if (verification.user_id) {
+      // Update user's phone_verified status only for signup and phone_change purposes
+      // (password_reset doesn't need to update this as it requires already verified phone)
+      if (verification.user_id && (verification.purpose === 'signup' || verification.purpose === 'phone_change')) {
         await db.query(
           'UPDATE users SET phone_verified = TRUE WHERE id = $1',
           [verification.user_id]
@@ -236,9 +256,25 @@ export class AuthService {
   }
 
   /**
+   * Mask phone number for privacy (show last 4 digits)
+   */
+  private maskPhoneNumber(phoneNumber: string): string {
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    if (cleaned.length >= 4) {
+      const lastFour = cleaned.slice(-4);
+      // Format as +1 (***) ***-1234
+      if (cleaned.length === 11 && cleaned.startsWith('1')) {
+        return `+1 (***) ***-${lastFour}`;
+      }
+      return `***-***-${lastFour}`;
+    }
+    return phoneNumber;
+  }
+
+  /**
    * Request a password reset - sends verification code to user's phone
    */
-  async requestPasswordReset(data: RequestPasswordResetRequest): Promise<void> {
+  async requestPasswordReset(data: RequestPasswordResetRequest): Promise<{ maskedPhone?: string }> {
     const { email } = data;
 
     try {
@@ -249,9 +285,9 @@ export class AuthService {
       );
 
       if (result.rows.length === 0) {
-        // Don't reveal if user exists or not
+        // Don't reveal if user exists or not - return success but no masked phone
         logger.info({ email }, 'Password reset requested for non-existent user');
-        return;
+        return {};
       }
 
       const user = result.rows[0];
@@ -264,6 +300,9 @@ export class AuthService {
       await this.sendVerificationCode(user.phone_number, 'password_reset', user.id);
 
       logger.info({ userId: user.id, email }, 'Password reset code sent');
+
+      // Return masked phone number so user knows where code was sent
+      return { maskedPhone: this.maskPhoneNumber(user.phone_number) };
     } catch (error) {
       if (error instanceof BadRequestError) {
         throw error;
@@ -274,18 +313,36 @@ export class AuthService {
   }
 
   /**
-   * Reset password using phone verification code
+   * Reset password using email and verification code
    */
   async resetPassword(data: ResetPasswordRequest): Promise<{ success: boolean }> {
-    const { phoneNumber, code, newPassword } = data;
+    const { email, code, newPassword } = data;
 
     try {
-      const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
+      // Find user by email to get their phone number
+      const userResult = await db.query(
+        'SELECT id, phone_number, phone_verified FROM users WHERE email = $1',
+        [email]
+      );
 
-      // Verify the code and get user ID
-      const verification = await this.verifyPhone({ phoneNumber: formattedPhone, code });
+      if (userResult.rows.length === 0) {
+        throw new BadRequestError('Invalid email or verification code');
+      }
 
-      if (!verification.success || !verification.userId) {
+      const user = userResult.rows[0];
+
+      if (!user.phone_number || !user.phone_verified) {
+        throw new BadRequestError('No verified phone number associated with this account');
+      }
+
+      // Verify the code using the phone number associated with this email
+      // IMPORTANT: Pass 'password_reset' to ensure only password reset codes can be used
+      const verification = await this.verifyPhone({ 
+        phoneNumber: user.phone_number, 
+        code 
+      }, 'password_reset');
+
+      if (!verification.success) {
         throw new BadRequestError('Invalid verification code');
       }
 
@@ -295,17 +352,17 @@ export class AuthService {
       // Update user's password
       await db.query(
         'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-        [passwordHash, verification.userId]
+        [passwordHash, user.id]
       );
 
-      logger.info({ userId: verification.userId }, 'Password reset successfully');
+      logger.info({ userId: user.id }, 'Password reset successfully');
 
       return { success: true };
     } catch (error) {
       if (error instanceof BadRequestError) {
         throw error;
       }
-      logger.error({ phoneNumber, error }, 'Password reset failed');
+      logger.error({ email, error }, 'Password reset failed');
       throw new Error('Failed to reset password');
     }
   }
@@ -376,7 +433,8 @@ export class AuthService {
       const formattedPhone = smsService.formatPhoneNumber(newPhoneNumber);
 
       // Verify the code for this new phone number
-      const verification = await this.verifyPhone({ phoneNumber: formattedPhone, code });
+      // IMPORTANT: Pass 'phone_change' to ensure only phone change codes can be used
+      const verification = await this.verifyPhone({ phoneNumber: formattedPhone, code }, 'phone_change');
 
       if (!verification.success) {
         throw new BadRequestError('Invalid verification code');

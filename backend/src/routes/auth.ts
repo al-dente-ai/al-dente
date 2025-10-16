@@ -159,7 +159,9 @@ router.post('/login', validateBody(loginSchema), async (req, res, next) => {
  */
 router.post('/verify-phone', validateBody(verifyPhoneSchema), async (req, res, next) => {
   try {
-    const result = await authService.verifyPhone(req.body);
+    // This endpoint is primarily for signup verification
+    // Other flows (password_reset, phone_change) handle verification internally
+    const result = await authService.verifyPhone(req.body, 'signup');
     res.status(200).json({
       success: result.success,
       message: 'Phone number verified successfully'
@@ -238,10 +240,11 @@ router.post('/send-verification-code', validateBody(sendVerificationCodeSchema),
  */
 router.post('/request-password-reset', validateBody(requestPasswordResetSchema), async (req, res, next) => {
   try {
-    await authService.requestPasswordReset(req.body);
+    const result = await authService.requestPasswordReset(req.body);
     res.status(200).json({
       success: true,
-      message: 'If an account exists with this email and has a verified phone number, a verification code has been sent.'
+      message: 'If an account exists with this email and has a verified phone number, a verification code has been sent.',
+      maskedPhone: result.maskedPhone
     });
   } catch (error) {
     next(error);
@@ -262,13 +265,13 @@ router.post('/request-password-reset', validateBody(requestPasswordResetSchema),
  *           schema:
  *             type: object
  *             required:
- *               - phoneNumber
+ *               - email
  *               - code
  *               - newPassword
  *             properties:
- *               phoneNumber:
+ *               email:
  *                 type: string
- *                 example: "+12345678900"
+ *                 format: email
  *               code:
  *                 type: string
  *                 example: "123456"
