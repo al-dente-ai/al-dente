@@ -87,11 +87,25 @@ export default function Login() {
                 error={errors.password?.message}
               />
 
-              <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign in'}
-              </Button>
-            </form>
-          </Card>
+            <div className="flex items-center justify-end">
+              <Link
+                to="/reset-password"
+                className="text-sm font-medium text-primary-500 hover:text-primary-600"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              isLoading={isLoading}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </Button>
+          </form>
+        </Card>
 
           <div className="mt-8 text-center">
             <Link to="/" className="text-sm text-neutral-600 hover:text-neutral-800">

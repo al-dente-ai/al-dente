@@ -8,6 +8,7 @@ const navigation = [
   { name: 'Scan', href: '/app/scan', icon: '📸' },
   { name: 'Inventory', href: '/app/inventory', icon: '📦' },
   { name: 'Recipes', href: '/app/recipes', icon: '👨‍🍳' },
+  { name: 'Settings', href: '/app/settings', icon: '⚙️' },
 ];
 
 export default function Shell() {

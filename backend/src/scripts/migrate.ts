@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { Pool } from 'pg';
 import { config } from '../config';
@@ -10,13 +10,40 @@ async function runMigrations() {
   });
 
   try {
-    // Read and execute the initial migration
-    const migrationPath = join(__dirname, '../sql/001_init.sql');
-    const migrationSQL = readFileSync(migrationPath, 'utf8');
-
     logger.info('Running database migrations...');
 
-    await pool.query(migrationSQL);
+    // Get all migration files from the sql directory
+    // Use the source directory since SQL files aren't copied to dist
+    const sqlDir = join(__dirname, '../../src/sql');
+    
+    let files: string[];
+    try {
+      files = readdirSync(sqlDir)
+        .filter((file: string) => file.endsWith('.sql'))
+        .sort(); // Run in order
+    } catch (error) {
+      logger.error({ error, sqlDir }, 'Failed to read SQL directory');
+      throw new Error(`Cannot find SQL directory at ${sqlDir}`);
+    }
+
+    if (files.length === 0) {
+      logger.warn('No SQL migration files found');
+      return;
+    }
+
+    // Execute each migration file
+    for (const file of files) {
+      logger.info(`Running migration: ${file}`);
+      try {
+        const migrationPath = join(sqlDir, file);
+        const migrationSQL = readFileSync(migrationPath, 'utf8');
+        await pool.query(migrationSQL);
+        logger.info(`Completed migration: ${file}`);
+      } catch (fileError: any) {
+        logger.error({ file, error: fileError, message: fileError.message, detail: fileError.detail }, `Migration ${file} failed`);
+        throw fileError;
+      }
+    }
 
     logger.info('Database migrations completed successfully');
   } catch (error) {

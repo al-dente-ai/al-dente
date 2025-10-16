@@ -7,10 +7,12 @@ import { lazy } from 'react';
 const Landing = lazy(() => import('../pages/Landing'));
 const Login = lazy(() => import('../pages/Auth/Login'));
 const Signup = lazy(() => import('../pages/Auth/Signup'));
+const PasswordReset = lazy(() => import('../pages/Auth/PasswordReset'));
 const Dashboard = lazy(() => import('../pages/Dashboard/index'));
 const Scan = lazy(() => import('../pages/Dashboard/Scan'));
 const Inventory = lazy(() => import('../pages/Dashboard/Inventory'));
 const Recipes = lazy(() => import('../pages/Dashboard/Recipes'));
+const Settings = lazy(() => import('../pages/Dashboard/Settings'));
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +26,10 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/reset-password',
+    element: <PasswordReset />,
   },
   {
     path: '/app',
@@ -48,6 +54,10 @@ export const router = createBrowserRouter([
           {
             path: 'recipes',
             element: <Recipes />,
+          },
+          {
+            path: 'settings',
+            element: <Settings />,
           },
         ],
       },

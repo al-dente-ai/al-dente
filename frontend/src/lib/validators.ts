@@ -1,4 +1,58 @@
 import { z } from 'zod';
+import validator from 'validator';
+
+// Phone number validation - US/Canada only
+const phoneNumberSchema = z
+  .string()
+  .min(1, 'Phone number is required')
+  .transform(val => val.trim())
+  .refine(
+    (phone) => {
+      // Remove all non-digit characters
+      const cleaned = phone.replace(/\D/g, '');
+      
+      // Must be 10 digits (US/Canada without country code) or 11 digits starting with 1
+      if (cleaned.length === 10) return true;
+      if (cleaned.length === 11 && cleaned.startsWith('1')) return true;
+      return false;
+    },
+    'Please enter a valid 10-digit US or Canada phone number'
+  )
+  .refine(
+    (phone) => {
+      const cleaned = phone.replace(/\D/g, '');
+      const nationalNumber = cleaned.length === 11 ? cleaned.substring(1) : cleaned;
+      
+      // Check if it's not a US/Canada number (country code other than 1)
+      if (cleaned.length > 11 || (cleaned.length === 11 && !cleaned.startsWith('1'))) {
+        return false;
+      }
+      
+      // Validate area code (first digit must be 2-9)
+      if (nationalNumber.length === 10) {
+        const firstDigit = nationalNumber[0];
+        return firstDigit >= '2' && firstDigit <= '9';
+      }
+      
+      return true;
+    },
+    'Only US and Canada phone numbers (+1) are currently supported'
+  )
+  .refine(
+    (phone) => {
+      const cleaned = phone.replace(/\D/g, '');
+      const nationalNumber = cleaned.length === 11 ? cleaned.substring(1) : cleaned;
+      
+      // Validate exchange code (4th digit must be 2-9)
+      if (nationalNumber.length === 10) {
+        const fourthDigit = nationalNumber[3];
+        return fourthDigit >= '2' && fourthDigit <= '9';
+      }
+      
+      return true;
+    },
+    'Invalid area code or exchange. Please check your phone number'
+  );
 
 // Auth schemas
 export const LoginSchema = z.object({
@@ -11,11 +65,36 @@ export const SignupSchema = z
     email: z.string().email('Please enter a valid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
+    phoneNumber: phoneNumberSchema,
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
   });
+
+export const VerifyPhoneSchema = z.object({
+  phoneNumber: phoneNumberSchema,
+  code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+});
+
+export const RequestPasswordResetSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+});
+
+export const ResetPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export const ChangePhoneSchema = z.object({
+  newPhoneNumber: phoneNumberSchema,
+  code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+});
 
 // Item schemas
 export const CreateItemSchema = z.object({
@@ -118,6 +197,10 @@ export const CreateRecipeSchema = z.object({
 // Export type inferences
 export type LoginFormData = z.infer<typeof LoginSchema>;
 export type SignupFormData = z.infer<typeof SignupSchema>;
+export type VerifyPhoneFormData = z.infer<typeof VerifyPhoneSchema>;
+export type RequestPasswordResetFormData = z.infer<typeof RequestPasswordResetSchema>;
+export type ResetPasswordFormData = z.infer<typeof ResetPasswordSchema>;
+export type ChangePhoneFormData = z.infer<typeof ChangePhoneSchema>;
 export type CreateItemFormData = z.infer<typeof CreateItemSchema>;
 export type UpdateItemFormData = z.infer<typeof UpdateItemSchema>;
 export type GenerateRecipesFormData = z.infer<typeof GenerateRecipesSchema>;

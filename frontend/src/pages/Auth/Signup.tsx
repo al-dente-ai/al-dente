@@ -1,18 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth, useIsAuthenticated, toast } from '../../store';
-import { SignupSchema, type SignupFormData } from '../../lib/validators';
+import { SignupSchema, type SignupFormData, VerifyPhoneSchema, type VerifyPhoneFormData } from '../../lib/validators';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
 import Header from '../../components/layout/Header';
+import api from '../../lib/api';
 
 export default function Signup() {
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
   const { signup, isLoading, error, clearError } = useAuth();
+  
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const {
     register,
@@ -20,6 +27,15 @@ export default function Signup() {
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(SignupSchema),
+  });
+
+  const {
+    register: registerVerify,
+    handleSubmit: handleSubmitVerify,
+    formState: { errors: verifyErrors },
+    setValue: setVerifyValue,
+  } = useForm<VerifyPhoneFormData>({
+    resolver: zodResolver(VerifyPhoneSchema),
   });
 
   // Redirect if already authenticated
@@ -39,11 +55,50 @@ export default function Signup() {
       await signup({
         email: data.email,
         password: data.password,
+        phoneNumber: data.phoneNumber,
       });
-      navigate('/app', { replace: true });
-      toast.success('Welcome to Al Dente! Your account has been created.');
+      
+      // Store phone number and show verification modal
+      setPhoneNumber(data.phoneNumber);
+      setVerifyValue('phoneNumber', data.phoneNumber);
+      setShowVerificationModal(true);
+      
+      toast.success('Account created! Please verify your phone number.');
     } catch (error) {
       // Error is handled by the store
+    }
+  };
+
+  const onVerifySubmit = async (data: VerifyPhoneFormData) => {
+    setVerificationLoading(true);
+    try {
+      await api.post('/auth/verify-phone', {
+        phoneNumber: data.phoneNumber,
+        code: data.code,
+      });
+      
+      setShowVerificationModal(false);
+      navigate('/app', { replace: true });
+      toast.success('Phone verified! Welcome to Al Dente!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Verification failed. Please try again.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setResendLoading(true);
+    try {
+      await api.post('/auth/send-verification-code', {
+        phoneNumber,
+        purpose: 'signup',
+      });
+      toast.success('Verification code sent!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to send code. Please try again.');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -71,14 +126,23 @@ export default function Signup() {
                 </div>
               )}
 
-              <Input
-                label="Email address"
-                type="email"
-                autoComplete="email"
-                {...register('email')}
-                error={errors.email?.message}
-                helperText="We'll use this to send you login information."
-              />
+            <Input
+              label="Email address"
+              type="email"
+              autoComplete="email"
+              {...register('email')}
+              error={errors.email?.message}
+            />
+
+            <Input
+              label="Phone Number"
+              type="tel"
+              autoComplete="tel"
+              placeholder="(555) 123-4567"
+              {...register('phoneNumber')}
+              error={errors.phoneNumber?.message}
+              helperText="US/Canada numbers only. Required for account verification and password recovery."
+            />
 
               <Input
                 label="Password"
@@ -122,6 +186,58 @@ export default function Signup() {
           </div>
         </div>
       </div>
+
+      {/* Phone Verification Modal */}
+      <Modal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        title="Verify Your Phone Number"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-neutral-600">
+            We've sent a 6-digit verification code to <strong>{phoneNumber}</strong>. 
+            Please enter it below to complete your registration.
+          </p>
+
+          <form onSubmit={handleSubmitVerify(onVerifySubmit)} className="space-y-4">
+            <Input
+              label="Verification Code"
+              type="text"
+              placeholder="123456"
+              maxLength={6}
+              {...registerVerify('code')}
+              error={verifyErrors.code?.message}
+              autoComplete="one-time-code"
+            />
+
+            <input type="hidden" {...registerVerify('phoneNumber')} />
+
+            <div className="flex gap-3">
+              <Button
+                type="submit"
+                className="flex-1"
+                isLoading={verificationLoading}
+                disabled={verificationLoading}
+              >
+                Verify
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleResendCode}
+                isLoading={resendLoading}
+                disabled={resendLoading}
+              >
+                Resend Code
+              </Button>
+            </div>
+          </form>
+
+          <p className="text-xs text-neutral-500 text-center">
+            The code will expire in 10 minutes.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
