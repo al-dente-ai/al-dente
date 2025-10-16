@@ -134,7 +134,6 @@ export default function Signup() {
               autoComplete="email"
               {...register('email')}
               error={errors.email?.message}
-              helperText="We'll use this to send you login information."
             />
 
             <Input
