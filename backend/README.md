@@ -455,3 +455,29 @@ Ensure all required environment variables are set:
 ## License
 
 MIT License - see LICENSE file for details.
+
+## Drizzle ORM
+
+This project uses Drizzle ORM with PostgreSQL.
+
+- Config: `drizzle.config.ts`
+- Generated: `drizzle/schema.ts`, `drizzle/relations.ts`, SQL under `drizzle/`
+- Runtime client: `drizzleDb` from `src/db.ts`
+
+Common commands (run from `backend/`):
+
+- Introspect existing DB into TypeScript schema:
+  - Ensure a working connection in `.env`.
+  - Prefer `DIRECT_DATABASE_URL` for tooling (local DB or direct Supabase with `?sslmode=require`).
+  - `npm run drizzle:introspect`
+
+- Generate SQL migrations from schema changes:
+  - `npm run drizzle:generate`
+
+- Apply migrations:
+  - `npm run drizzle:migrate`
+
+Notes:
+
+- Supabase pooler URLs may fail for CLI introspection. Use a direct DB URL in `DIRECT_DATABASE_URL`.
+- Do not commit `.env` or secrets. See `env.example` for placeholders.
