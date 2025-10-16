@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { drizzleDb, recipes } from '../db';
 import { logger } from '../logger';
 import { NotFoundError } from '../middleware/error';
 import { GenerateRecipesRequest, CreateRecipeRequest, RecipesQuery } from '../schemas/recipes';
@@ -6,6 +6,7 @@ import { calculateOffset, createPaginationResult, PaginationResult } from '../ut
 import { openaiService } from '../utils/openai';
 import { supabaseService } from '../utils/supabase';
 import { itemsService } from './itemsService';
+import { eq, and, desc, count } from 'drizzle-orm';
 
 export interface Recipe {
   id: string;
@@ -20,6 +21,24 @@ export interface Recipe {
   uses_item_ids: string[];
   image_url?: string;
   created_at: string;
+}
+
+// Helper function to convert Drizzle schema to Recipe interface
+function drizzleRecipeToRecipe(rawRecipe: any): Recipe {
+  return {
+    id: rawRecipe.id,
+    user_id: rawRecipe.userId,
+    title: rawRecipe.title,
+    ...(rawRecipe.description && { description: rawRecipe.description }),
+    meal_type: rawRecipe.mealType,
+    ...(rawRecipe.servings && { servings: rawRecipe.servings }),
+    ...(rawRecipe.prepTimeMinutes && { prep_time_minutes: rawRecipe.prepTimeMinutes }),
+    ingredients: rawRecipe.ingredients as Array<{ name: string; quantity: string }>,
+    steps: rawRecipe.steps as string[],
+    uses_item_ids: rawRecipe.usesItemIds || [],
+    ...(rawRecipe.imageUrl && { image_url: rawRecipe.imageUrl }),
+    created_at: rawRecipe.createdAt,
+  } as Recipe;
 }
 
 export class RecipesService {
@@ -163,28 +182,22 @@ export class RecipesService {
         timestamp: new Date().toISOString(),
       });
 
-      const result = await db.query(
-        `INSERT INTO recipes (
-          user_id, title, description, meal_type, servings, 
-          prep_time_minutes, ingredients, steps, uses_item_ids, image_url
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        RETURNING *`,
-        [
+      const result = await drizzleDb.insert(recipes)
+        .values({
           userId,
           title,
           description,
-          meal_type,
+          mealType: meal_type,
           servings,
-          prep_time_minutes,
-          JSON.stringify(ingredients),
-          JSON.stringify(steps),
-          validatedUUIDs,
-          image_url,
-        ]
-      );
+          prepTimeMinutes: prep_time_minutes,
+          ingredients,
+          steps,
+          usesItemIds: validatedUUIDs,
+          imageUrl: image_url,
+        })
+        .returning();
 
-      const recipe = result.rows[0] as Recipe;
+      const recipe = drizzleRecipeToRecipe(result[0]);
 
       console.log('✅ [RECIPES SERVICE] Recipe created successfully:', {
         recipeId: recipe.id,
@@ -241,23 +254,25 @@ export class RecipesService {
       const offset = calculateOffset(page, pageSize);
 
       // Get total count
-      const countResult = await db.query('SELECT COUNT(*) FROM recipes WHERE user_id = $1', [
-        userId,
-      ]);
-      const total = parseInt(countResult.rows[0].count, 10);
+      const countResult = await drizzleDb
+        .select({ count: count() })
+        .from(recipes)
+        .where(eq(recipes.userId, userId));
+      
+      const total = countResult[0].count;
 
       // Get recipes
-      const recipesResult = await db.query(
-        `SELECT * FROM recipes 
-         WHERE user_id = $1 
-         ORDER BY created_at DESC 
-         LIMIT $2 OFFSET $3`,
-        [userId, pageSize, offset]
-      );
+      const recipesResult = await drizzleDb
+        .select()
+        .from(recipes)
+        .where(eq(recipes.userId, userId))
+        .orderBy(desc(recipes.createdAt))
+        .limit(pageSize)
+        .offset(offset);
 
-      const recipes = recipesResult.rows as Recipe[];
+      const mappedRecipes = recipesResult.map(drizzleRecipeToRecipe);
 
-      return createPaginationResult(recipes, total, page, pageSize);
+      return createPaginationResult(mappedRecipes, total, page, pageSize);
     } catch (error) {
       logger.error('Failed to fetch recipes', error);
       throw new Error('Failed to fetch recipes');
@@ -266,17 +281,16 @@ export class RecipesService {
 
   async getRecipeById(userId: string, recipeId: string): Promise<Recipe> {
     try {
-      const result = await db.query('SELECT * FROM recipes WHERE id = $1 AND user_id = $2', [
-        recipeId,
-        userId,
-      ]);
+      const result = await drizzleDb.select()
+        .from(recipes)
+        .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId)));
 
-      const recipe = result.rows[0];
-      if (!recipe) {
+      const rawRecipe = result[0];
+      if (!rawRecipe) {
         throw new NotFoundError('Recipe not found');
       }
 
-      return recipe as Recipe;
+      return drizzleRecipeToRecipe(rawRecipe);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -288,12 +302,11 @@ export class RecipesService {
 
   async deleteRecipe(userId: string, recipeId: string): Promise<void> {
     try {
-      const result = await db.query(
-        'DELETE FROM recipes WHERE id = $1 AND user_id = $2 RETURNING id',
-        [recipeId, userId]
-      );
+      const result = await drizzleDb.delete(recipes)
+        .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId)))
+        .returning({ id: recipes.id });
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         throw new NotFoundError('Recipe not found');
       }
 
