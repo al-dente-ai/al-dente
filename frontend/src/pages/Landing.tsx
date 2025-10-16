@@ -93,7 +93,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-neutral-200 py-8">
         <div className="mx-auto max-w-6xl px-6 text-center text-neutral-600">
-          <p>&copy; 2024 Al Dente. All rights reserved.</p>
+          <p>&copy; 2025 Al Dente. All rights reserved.</p>
         </div>
       </footer>
     </div>
