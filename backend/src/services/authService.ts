@@ -1,4 +1,4 @@
-import { drizzleDb, users, loginEvents } from '../db';
+import { db, drizzleDb, users, loginEvents } from '../db';
 import { logger } from '../logger';
 import { hashPassword, verifyPassword } from '../utils/passwords';
 import { generateToken } from '../middleware/auth';
@@ -68,10 +68,14 @@ export class AuthService {
         .values({
           email,
           passwordHash,
+          phoneNumber: formattedPhone,
+          phoneVerified: false,
         })
         .returning({
           id: users.id,
           email: users.email,
+          phone_number: users.phoneNumber,
+          phone_verified: users.phoneVerified,
           created_at: users.createdAt,
           updated_at: users.updatedAt,
         });
@@ -426,15 +430,23 @@ export class AuthService {
       const result = await drizzleDb.select({
         id: users.id,
         email: users.email,
-        phone_number: user.phoneNumber,
-        phone_verified: user.phoneVerified,
+        phone_number: users.phoneNumber,
+        phone_verified: users.phoneVerified,
         created_at: users.createdAt,
         updated_at: users.updatedAt,
       })
         .from(users)
         .where(eq(users.id, userId));
 
-      return result[0] || null;
+      const user = result[0];
+      if (!user) return null;
+
+      // Convert null to undefined and conditionally include phone_number
+      const { phone_number, ...rest } = user;
+      return {
+        ...rest,
+        ...(phone_number !== null && { phone_number }),
+      } as User;
     } catch (error) {
       logger.error('Failed to fetch user', error);
       throw new Error('Failed to fetch user');
