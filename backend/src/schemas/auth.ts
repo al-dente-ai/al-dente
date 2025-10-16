@@ -19,7 +19,10 @@ export const signupSchema = z.object({
 
 export const verifyPhoneSchema = z.object({
   phoneNumber: phoneNumberSchema,
-  code: z.string().length(6, 'Verification code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+  code: z
+    .string()
+    .length(6, 'Verification code must be 6 digits')
+    .regex(/^\d{6}$/, 'Code must be numeric'),
 });
 
 export const sendVerificationCodeSchema = z.object({
@@ -38,13 +41,19 @@ export const requestPasswordResetSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   email: z.string().email('Invalid email format').trim().toLowerCase(),
-  code: z.string().length(6, 'Verification code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+  code: z
+    .string()
+    .length(6, 'Verification code must be 6 digits')
+    .regex(/^\d{6}$/, 'Code must be numeric'),
   newPassword: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
 export const changePhoneNumberSchema = z.object({
   newPhoneNumber: phoneNumberSchema,
-  code: z.string().length(6, 'Verification code must be 6 digits').regex(/^\d{6}$/, 'Code must be numeric'),
+  code: z
+    .string()
+    .length(6, 'Verification code must be 6 digits')
+    .regex(/^\d{6}$/, 'Code must be numeric'),
 });
 
 export type SignupRequest = z.infer<typeof signupSchema>;

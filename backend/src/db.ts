@@ -2,8 +2,8 @@ import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { config } from './config';
 import { logger } from './logger';
-import * as schema from '../drizzle/schema';
-import * as relations from '../drizzle/relations';
+import * as schema from './db/schema';
+import * as relations from './db/relations';
 
 class Database {
   private pool: Pool;
@@ -91,4 +91,4 @@ const drizzlePool = new Pool({
 export const drizzleDb = drizzle(drizzlePool, { schema: { ...schema, ...relations } });
 
 // Export schema tables for easy access
-export * from '../drizzle/schema';
+export * from './db/schema';
