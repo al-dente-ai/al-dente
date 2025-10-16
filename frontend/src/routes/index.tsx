@@ -8,6 +8,7 @@ const Landing = lazy(() => import('../pages/Landing'));
 const Login = lazy(() => import('../pages/Auth/Login'));
 const Signup = lazy(() => import('../pages/Auth/Signup'));
 const PasswordReset = lazy(() => import('../pages/Auth/PasswordReset'));
+const VerifyPhone = lazy(() => import('../pages/Auth/VerifyPhone'));
 const Dashboard = lazy(() => import('../pages/Dashboard/index'));
 const Scan = lazy(() => import('../pages/Dashboard/Scan'));
 const Inventory = lazy(() => import('../pages/Dashboard/Inventory'));
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
   {
     path: '/reset-password',
     element: <PasswordReset />,
+  },
+  {
+    path: '/verify-phone',
+    element: <VerifyPhone />,
   },
   {
     path: '/app',

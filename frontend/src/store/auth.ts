@@ -9,6 +9,8 @@ interface AuthState {
   user?: User;
   isLoading: boolean;
   error?: string;
+  phoneVerified?: boolean;
+  requiresPhoneVerification?: boolean;
 }
 
 interface AuthActions {
@@ -17,6 +19,8 @@ interface AuthActions {
   logout: () => void;
   clearError: () => void;
   hydrate: () => void;
+  fetchUser: () => Promise<void>;
+  setPhoneVerified: (verified: boolean) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -28,6 +32,8 @@ export const useAuth = create<AuthStore>()(
       user: undefined,
       isLoading: false,
       error: undefined,
+      phoneVerified: undefined,
+      requiresPhoneVerification: undefined,
 
       login: async (credentials: LoginRequest) => {
         set((state) => {
@@ -43,9 +49,9 @@ export const useAuth = create<AuthStore>()(
 
           set((state) => {
             state.token = data.token;
+            state.phoneVerified = data.phoneVerified;
+            state.requiresPhoneVerification = data.requiresPhoneVerification;
             state.isLoading = false;
-            // Note: Backend only returns token, not user info
-            // We'll derive user info from token or make a separate API call if needed
           });
         } catch (error) {
           const apiError = error as ApiError;
@@ -71,6 +77,8 @@ export const useAuth = create<AuthStore>()(
 
           set((state) => {
             state.token = data.token;
+            state.phoneVerified = data.phoneVerified;
+            state.requiresPhoneVerification = data.requiresPhoneVerification;
             state.isLoading = false;
           });
         } catch (error) {
@@ -91,6 +99,8 @@ export const useAuth = create<AuthStore>()(
           state.token = undefined;
           state.user = undefined;
           state.error = undefined;
+          state.phoneVerified = undefined;
+          state.requiresPhoneVerification = undefined;
         });
       },
 
@@ -104,16 +114,51 @@ export const useAuth = create<AuthStore>()(
         const { token } = get();
         if (token) {
           api.defaults.headers.common.Authorization = `Bearer ${token}`;
+          // Fetch user data to get phone verification status
+          get().fetchUser();
         }
+      },
+
+      fetchUser: async () => {
+        try {
+          const { data } = await api.get<User>('/auth/me');
+          set((state) => {
+            state.user = data;
+            state.phoneVerified = data.phoneVerified;
+            state.requiresPhoneVerification = !data.phoneVerified;
+          });
+        } catch (error) {
+          // If fetching user fails, user might not be authenticated
+          // We'll handle this gracefully
+          console.error('Failed to fetch user:', error);
+        }
+      },
+
+      setPhoneVerified: (verified: boolean) => {
+        set((state) => {
+          state.phoneVerified = verified;
+          state.requiresPhoneVerification = !verified;
+          if (state.user) {
+            state.user.phoneVerified = verified;
+          }
+        });
       },
     })),
     {
       name: 'app:auth',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        phoneVerified: state.phoneVerified,
+        requiresPhoneVerification: state.requiresPhoneVerification,
+      }),
     }
   )
 );
 
 // Computed values
 export const useIsAuthenticated = () => useAuth((state) => Boolean(state.token));
+export const usePhoneVerified = () => useAuth((state) => state.phoneVerified);
+export const useRequiresPhoneVerification = () =>
+  useAuth((state) => state.requiresPhoneVerification);
