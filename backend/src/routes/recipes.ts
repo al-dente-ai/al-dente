@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { recipesService } from '../services/recipesService';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
+import { authenticate, requirePhoneVerification, AuthenticatedRequest } from '../middleware/auth';
 import { validateBody, validateQuery, validateParams } from '../middleware/validate';
 import {
   generateRecipesSchema,
@@ -11,8 +11,9 @@ import {
 
 const router = Router();
 
-// Apply authentication to all routes
+// Apply authentication and phone verification to all routes
 router.use(authenticate);
+router.use(requirePhoneVerification);
 
 const generateRecipes = async (req: Request, res: Response, next: NextFunction) => {
   try {

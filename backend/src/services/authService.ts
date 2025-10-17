@@ -416,6 +416,8 @@ export class AuthService {
           id: users.id,
           email: users.email,
           password_hash: users.passwordHash,
+          phone_number: users.phoneNumber,
+          phone_verified: users.phoneVerified,
         })
         .from(users)
         .where(eq(users.email, email));
@@ -443,7 +445,12 @@ export class AuthService {
 
       logger.info({ userId: user.id, email: user.email }, 'User logged in successfully');
 
-      return { token };
+      // Return token with phone verification status
+      return {
+        token,
+        phoneVerified: user.phone_verified,
+        requiresPhoneVerification: !user.phone_verified,
+      };
     } catch (error) {
       if (error instanceof AuthenticationError) {
         throw error;

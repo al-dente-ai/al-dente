@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { scanService } from '../services/scanService';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
+import { authenticate, requirePhoneVerification, AuthenticatedRequest } from '../middleware/auth';
 import { uploadRateLimit } from '../middleware/rateLimit';
 import { ValidationError } from '../middleware/error';
 
@@ -25,8 +25,9 @@ const upload = multer({
   },
 });
 
-// Apply authentication and rate limiting
+// Apply authentication, phone verification, and rate limiting
 router.use(authenticate);
+router.use(requirePhoneVerification);
 router.use(uploadRateLimit);
 
 const uploadFile = async (req: Request, res: Response, next: NextFunction) => {

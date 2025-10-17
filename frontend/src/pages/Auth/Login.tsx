@@ -13,7 +13,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isAuthenticated = useIsAuthenticated();
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError, phoneVerified } = useAuth();
 
   const {
     register,
@@ -23,13 +23,15 @@ export default function Login() {
     resolver: zodResolver(LoginSchema),
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated and verified
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && phoneVerified) {
       const next = searchParams.get('next') || '/app';
       navigate(next, { replace: true });
+    } else if (isAuthenticated && phoneVerified === false) {
+      navigate('/verify-phone', { replace: true });
     }
-  }, [isAuthenticated, navigate, searchParams]);
+  }, [isAuthenticated, phoneVerified, navigate, searchParams]);
 
   // Clear errors when component mounts
   useEffect(() => {
@@ -39,9 +41,8 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data);
-      const next = searchParams.get('next') || '/app';
-      navigate(next, { replace: true });
       toast.success('Welcome back!');
+      // Phone verification check will happen in useEffect above
     } catch (error) {
       // Error is handled by the store
     }

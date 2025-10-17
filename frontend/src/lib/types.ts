@@ -147,6 +147,8 @@ export interface ApiError {
 
 export interface AuthResponse {
   token: string;
+  phoneVerified?: boolean;
+  requiresPhoneVerification?: boolean;
 }
 
 export interface LoginRequest {
