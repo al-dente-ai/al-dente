@@ -10,41 +10,6 @@ Al Dente is a modern, full-stack web application that revolutionizes how you man
 
 👉 [Al Dente](https://al-dente.site/)
 
-## Key Features
-
-### AI-Powered Food Recognition
-- **Smart Image Scanning**: Upload photos of your food and let OpenAI Vision API automatically identify items
-- **Automatic Categorization**: AI assigns appropriate food categories (produce, dairy, meat, etc.)
-- **Expiry Prediction**: Conservative expiry date suggestions based on food type
-- **Confidence Scoring**: Know how certain the AI is about its predictions
-- **Multi-Format Support**: PNG, JPEG, JPG, WebP up to 16MB
-- **Drag & Drop Interface**: Modern, intuitive file upload experience
-
-### Intelligent Recipe Generation  
-- **Personalized Recipes**: Generate recipes based on your actual pantry inventory
-- **Meal Type Filtering**: Breakfast, lunch, dinner, or snack options
-- **Custom Preferences**: Add dietary restrictions and cuisine preferences
-- **Recipe Images**: Beautiful food photography generated with DALL-E 3
-- **Ingredient Mapping**: Recipes automatically link to your actual pantry items
-- **Detailed Instructions**: Step-by-step cooking directions with prep time and servings
-
-### Advanced Pantry Management
-- **Comprehensive Inventory**: Track name, amount, expiry dates, categories, and notes
-- **Fuzzy Search**: PostgreSQL trigram-based search finds items even with typos
-- **Smart Filtering**: Filter by categories, expiry dates, and custom criteria
-- **Expiry Alerts**: Visual indicators for items approaching expiration
-- **Bulk Operations**: Efficient management of large inventories
-- **Optimistic Updates**: Instant UI feedback with automatic error rollback
-
-### Secure & Scalable
-- **JWT Authentication**: Secure user accounts with email/password
-- **SMS Verification**: Twilio-powered phone verification for signup and password reset
-- **Multi-Tier Rate Limiting**: Separate limits for general API (100/15min), auth (10/15min), and uploads (20/hour)
-- **Input Validation**: Comprehensive validation using Zod schemas on both frontend and backend
-- **Image Security**: Safe file upload with type, size, and content validation
-- **Security Audit Trail**: Login event tracking with IP and user agent logging
-- **Production Ready**: Docker deployment with health checks and monitoring
-
 ## Architecture Overview
 [![React](https://skillicons.dev/icons?i=react)](https://react.dev)
 [![TypeScript](https://skillicons.dev/icons?i=typescript)](https://www.typescriptlang.org/)
@@ -52,10 +17,8 @@ Al Dente is a modern, full-stack web application that revolutionizes how you man
 [![TailwindCSS](https://skillicons.dev/icons?i=tailwind)](https://tailwindcss.com/)
 [![Node.js](https://skillicons.dev/icons?i=nodejs)](https://nodejs.org/)
 [![Express](https://skillicons.dev/icons?i=express)](https://expressjs.com/)
-
 [![PostgreSQL](https://skillicons.dev/icons?i=postgres)](https://www.postgresql.org/)
 [![Supabase](https://skillicons.dev/icons?i=supabase)](https://supabase.com/)
-
 [![Docker](https://skillicons.dev/icons?i=docker)](https://www.docker.com/)
 [![Nginx](https://skillicons.dev/icons?i=nginx)](https://nginx.org/)
 [![Cloudflare](https://skillicons.dev/icons?i=cloudflare)](https://www.cloudflare.com/)
@@ -93,6 +56,41 @@ Al Dente is a modern, full-stack web application that revolutionizes how you man
 - **Health checks** for all services with auto-restart
 - **Centralized logging** for troubleshooting
 - **Multi-network architecture** for service isolation
+
+## Key Features
+
+### AI-Powered Food Recognition
+- **Smart Image Scanning**: Upload photos of your food and let OpenAI Vision API automatically identify items
+- **Automatic Categorization**: AI assigns appropriate food categories (produce, dairy, meat, etc.)
+- **Expiry Prediction**: Conservative expiry date suggestions based on food type
+- **Confidence Scoring**: Know how certain the AI is about its predictions
+- **Multi-Format Support**: PNG, JPEG, JPG, WebP up to 16MB
+- **Drag & Drop Interface**: Modern, intuitive file upload experience
+
+### Intelligent Recipe Generation  
+- **Personalized Recipes**: Generate recipes based on your actual pantry inventory
+- **Meal Type Filtering**: Breakfast, lunch, dinner, or snack options
+- **Custom Preferences**: Add dietary restrictions and cuisine preferences
+- **Recipe Images**: Beautiful food photography generated with DALL-E 3
+- **Ingredient Mapping**: Recipes automatically link to your actual pantry items
+- **Detailed Instructions**: Step-by-step cooking directions with prep time and servings
+
+### Advanced Pantry Management
+- **Comprehensive Inventory**: Track name, amount, expiry dates, categories, and notes
+- **Fuzzy Search**: PostgreSQL trigram-based search finds items even with typos
+- **Smart Filtering**: Filter by categories, expiry dates, and custom criteria
+- **Expiry Alerts**: Visual indicators for items approaching expiration
+- **Bulk Operations**: Efficient management of large inventories
+- **Optimistic Updates**: Instant UI feedback with automatic error rollback
+
+### Secure & Scalable
+- **JWT Authentication**: Secure user accounts with email/password
+- **SMS Verification**: Twilio-powered phone verification for signup and password reset
+- **Multi-Tier Rate Limiting**: Separate limits for general API (100/15min), auth (10/15min), and uploads (20/hour)
+- **Input Validation**: Comprehensive validation using Zod schemas on both frontend and backend
+- **Image Security**: Safe file upload with type, size, and content validation
+- **Security Audit Trail**: Login event tracking with IP and user agent logging
+- **Production Ready**: Docker deployment with health checks and monitoring
 
 ## Quick Start
 
