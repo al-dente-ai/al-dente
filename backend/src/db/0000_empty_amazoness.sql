@@ -11,7 +11,6 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_key" UNIQUE("email")
 );
 --> statement-breakpoint
-ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "items" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -25,7 +24,6 @@ CREATE TABLE "items" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "login_events" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -35,7 +33,6 @@ CREATE TABLE "login_events" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "login_events" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "recipes" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -46,13 +43,12 @@ CREATE TABLE "recipes" (
 	"prep_time_minutes" integer,
 	"ingredients" jsonb NOT NULL,
 	"steps" jsonb NOT NULL,
-	"uses_item_ids" uuid[] DEFAULT '{""}',
+	"uses_item_ids" uuid[] DEFAULT '{}',
 	"image_url" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "recipes_meal_type_check" CHECK (meal_type = ANY (ARRAY['breakfast'::text, 'lunch'::text, 'dinner'::text, 'snack'::text]))
 );
 --> statement-breakpoint
-ALTER TABLE "recipes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "email_verification_codes" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -79,20 +75,5 @@ CREATE UNIQUE INDEX "email_verification_codes_active_user_idx" ON "email_verific
 CREATE INDEX "email_verification_codes_code_idx" ON "email_verification_codes" USING btree ("code" text_ops);--> statement-breakpoint
 CREATE INDEX "email_verification_codes_expires_at_idx" ON "email_verification_codes" USING btree ("expires_at" timestamptz_ops);--> statement-breakpoint
 CREATE INDEX "email_verification_codes_user_id_idx" ON "email_verification_codes" USING btree ("user_id" uuid_ops);--> statement-breakpoint
-CREATE POLICY "Users select own" ON "users" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((( SELECT auth.uid() AS uid) = id));--> statement-breakpoint
-CREATE POLICY "Users insert own" ON "users" AS PERMISSIVE FOR INSERT TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Users update own" ON "users" AS PERMISSIVE FOR UPDATE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Users delete own" ON "users" AS PERMISSIVE FOR DELETE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Items select own" ON "items" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((( SELECT auth.uid() AS uid) = user_id));--> statement-breakpoint
-CREATE POLICY "Items insert own" ON "items" AS PERMISSIVE FOR INSERT TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Items update own" ON "items" AS PERMISSIVE FOR UPDATE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Items delete own" ON "items" AS PERMISSIVE FOR DELETE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Login events select own" ON "login_events" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((( SELECT auth.uid() AS uid) = user_id));--> statement-breakpoint
-CREATE POLICY "Login events insert own" ON "login_events" AS PERMISSIVE FOR INSERT TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Login events update own" ON "login_events" AS PERMISSIVE FOR UPDATE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Login events delete own" ON "login_events" AS PERMISSIVE FOR DELETE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Recipes select own" ON "recipes" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((( SELECT auth.uid() AS uid) = user_id));--> statement-breakpoint
-CREATE POLICY "Recipes insert own" ON "recipes" AS PERMISSIVE FOR INSERT TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Recipes update own" ON "recipes" AS PERMISSIVE FOR UPDATE TO "authenticated";--> statement-breakpoint
-CREATE POLICY "Recipes delete own" ON "recipes" AS PERMISSIVE FOR DELETE TO "authenticated";
+-- RLS policies were intentionally omitted for local/dev Postgres
 */

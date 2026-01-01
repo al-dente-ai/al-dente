@@ -42,15 +42,6 @@ export const users = pgTable(
       .using('btree', table.phoneNumber.asc().nullsLast().op('text_ops'))
       .where(sql`(phone_number IS NOT NULL)`),
     unique('users_email_key').on(table.email),
-    pgPolicy('Users select own', {
-      as: 'permissive',
-      for: 'select',
-      to: ['authenticated'],
-      using: sql`(( SELECT auth.uid() AS uid) = id)`,
-    }),
-    pgPolicy('Users insert own', { as: 'permissive', for: 'insert', to: ['authenticated'] }),
-    pgPolicy('Users update own', { as: 'permissive', for: 'update', to: ['authenticated'] }),
-    pgPolicy('Users delete own', { as: 'permissive', for: 'delete', to: ['authenticated'] }),
   ]
 );
 
@@ -86,15 +77,6 @@ export const items = pgTable(
       foreignColumns: [users.id],
       name: 'items_user_id_fkey',
     }).onDelete('cascade'),
-    pgPolicy('Items select own', {
-      as: 'permissive',
-      for: 'select',
-      to: ['authenticated'],
-      using: sql`(( SELECT auth.uid() AS uid) = user_id)`,
-    }),
-    pgPolicy('Items insert own', { as: 'permissive', for: 'insert', to: ['authenticated'] }),
-    pgPolicy('Items update own', { as: 'permissive', for: 'update', to: ['authenticated'] }),
-    pgPolicy('Items delete own', { as: 'permissive', for: 'delete', to: ['authenticated'] }),
   ]
 );
 
@@ -120,15 +102,6 @@ export const loginEvents = pgTable(
       foreignColumns: [users.id],
       name: 'login_events_user_id_fkey',
     }).onDelete('cascade'),
-    pgPolicy('Login events select own', {
-      as: 'permissive',
-      for: 'select',
-      to: ['authenticated'],
-      using: sql`(( SELECT auth.uid() AS uid) = user_id)`,
-    }),
-    pgPolicy('Login events insert own', { as: 'permissive', for: 'insert', to: ['authenticated'] }),
-    pgPolicy('Login events update own', { as: 'permissive', for: 'update', to: ['authenticated'] }),
-    pgPolicy('Login events delete own', { as: 'permissive', for: 'delete', to: ['authenticated'] }),
   ]
 );
 
@@ -147,7 +120,7 @@ export const recipes = pgTable(
     prepTimeMinutes: integer('prep_time_minutes'),
     ingredients: jsonb().notNull(),
     steps: jsonb().notNull(),
-    usesItemIds: uuid('uses_item_ids').array().default(['']),
+    usesItemIds: uuid('uses_item_ids').array().default([]),
     imageUrl: text('image_url'),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
@@ -161,15 +134,6 @@ export const recipes = pgTable(
       foreignColumns: [users.id],
       name: 'recipes_user_id_fkey',
     }).onDelete('cascade'),
-    pgPolicy('Recipes select own', {
-      as: 'permissive',
-      for: 'select',
-      to: ['authenticated'],
-      using: sql`(( SELECT auth.uid() AS uid) = user_id)`,
-    }),
-    pgPolicy('Recipes insert own', { as: 'permissive', for: 'insert', to: ['authenticated'] }),
-    pgPolicy('Recipes update own', { as: 'permissive', for: 'update', to: ['authenticated'] }),
-    pgPolicy('Recipes delete own', { as: 'permissive', for: 'delete', to: ['authenticated'] }),
     check(
       'recipes_meal_type_check',
       sql`meal_type = ANY (ARRAY['breakfast'::text, 'lunch'::text, 'dinner'::text, 'snack'::text])`
@@ -181,7 +145,7 @@ export const phoneVerificationCodes = pgTable(
   'phone_verification_codes',
   {
     id: uuid()
-      .default(sql`COALESCE(gen_random_uuid(), uuid_generate_v4())`)
+	      .default(sql`uuid_generate_v4()`)
       .primaryKey()
       .notNull(),
     phoneNumber: text('phone_number').notNull(),
@@ -205,7 +169,7 @@ export const phoneVerificationCodes = pgTable(
         table.phoneNumber.asc().nullsLast().op('text_ops'),
         table.code.asc().nullsLast().op('text_ops'),
         table.purpose.asc().nullsLast().op('text_ops'),
-        table.expiresAt.asc().nullsLast().op('text_ops')
+	        table.expiresAt.asc().nullsLast().op('timestamptz_ops')
       )
       .where(sql`(verified = false)`),
     index('phone_verification_codes_phone_active_idx')
